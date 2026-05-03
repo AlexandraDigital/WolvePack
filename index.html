@@ -105,8 +105,14 @@
     font-size: 22px; letter-spacing: 0.1em;
     cursor: pointer; transition: all 0.2s;
   }
-  .btn-primary:hover { background: #e8930b; transform: translateY(-1px); }
-  .btn-primary:disabled { background: rgba(212,131,10,0.3); color: rgba(0,0,0,0.3); cursor: not-allowed; transform: none; }
+  .btn-primary:hover:not(:disabled) { background: #e8930b; transform: translateY(-1px); }
+  .btn-primary:disabled { 
+    background: rgba(212,131,10,0.15); 
+    color: rgba(13,11,8,0.5); 
+    cursor: not-allowed; 
+    transform: none;
+    opacity: 0.6;
+  }
 
   /* ── Sign-in screen ── */
   #signin-screen {
