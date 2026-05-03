@@ -624,18 +624,35 @@ const setupBtn = document.getElementById('setup-btn');
 cidInput.value = CLIENT_ID;
 setupBtn.disabled = !CLIENT_ID.trim();
 
-// Helper function to update button state
+// Helper function to update button state - check immediately and with delays
 function updateSetupButton() {
-  setupBtn.disabled = !cidInput.value.trim();
+  const hasValue = cidInput.value && cidInput.value.trim().length > 0;
+  console.log('updateSetupButton called - hasValue:', hasValue, 'input value:', cidInput.value);
+  setupBtn.disabled = !hasValue;
 }
 
-// Listen for all input changes: typing, pasting, and change
+// Multiple event listeners to catch all input methods
 cidInput.addEventListener('input', updateSetupButton);
 cidInput.addEventListener('paste', () => {
-  // Wait for paste to complete in the input
-  setTimeout(updateSetupButton, 10);
+  // Multiple timeouts to ensure we catch the updated value
+  setTimeout(updateSetupButton, 0);
+  setTimeout(updateSetupButton, 5);
+  setTimeout(updateSetupButton, 20);
 });
 cidInput.addEventListener('change', updateSetupButton);
+cidInput.addEventListener('drop', updateSetupButton);
+
+// Also check when user focuses away
+cidInput.addEventListener('blur', updateSetupButton);
+
+// Fallback: check button state when user tries to interact
+setupBtn.addEventListener('click', (e) => {
+  updateSetupButton();
+  if (setupBtn.disabled) {
+    e.preventDefault();
+    cidInput.focus();
+  }
+});
 
 function saveClientId() {
   CLIENT_ID = cidInput.value.trim();
