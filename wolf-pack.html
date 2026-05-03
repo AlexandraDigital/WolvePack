@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wolf Pack · Run With Your Best</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bone:    #e8dfc8;
+    --fur:     #c4a882;
+    --amber:   #d4830a;
+    --blood:   #8b1a1a;
+    --shadow:  #0d0b08;
+    --bark:    #1a1510;
+    --moss:    #1e2218;
+    --mist:    rgba(232,223,200,0.08);
+    --ahead:   #5a8a3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--shadow);
+    color: var(--bone);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Forest background ── */
+  .forest-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(20,15,8,0.95) 40%, transparent 100%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(139,26,26,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 70%, rgba(212,131,10,0.06) 0%, transparent 70%),
+      linear-gradient(180deg, #060504 0%, #0d0b08 40%, #111009 100%);
+  }
+
+  /* Animated moon */
+  .moon {
+    position: fixed; top: 32px; right: 48px; z-index: 1;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, #fff8e8, #d4c89a);
+    box-shadow: 0 0 40px 12px rgba(212,200,154,0.18), 0 0 80px 30px rgba(212,200,154,0.08);
+    animation: moonPulse 8s ease-in-out infinite;
+  }
+  @keyframes moonPulse {
+    0%,100% { box-shadow: 0 0 40px 12px rgba(212,200,154,0.18), 0 0 80px 30px rgba(212,200,154,0.08); }
+    50%      { box-shadow: 0 0 50px 18px rgba(212,200,154,0.28), 0 0 100px 50px rgba(212,200,154,0.12); }
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; position: relative; z-index: 2; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── Setup screen ── */
+  #setup-screen {
+    min-height: 100vh; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center;
+  }
+  .setup-inner { max-width: 420px; width: 100%; }
+  .wolf-icon-big { font-size: 64px; margin-bottom: 16px; display: block;
+    filter: drop-shadow(0 0 20px rgba(212,131,10,0.4)); }
+  .title-huge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 10vw, 64px);
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+    color: var(--bone);
+    text-shadow: 0 0 40px rgba(212,131,10,0.3);
+    margin-bottom: 8px;
+  }
+  .setup-sub {
+    font-size: 15px; font-weight: 300; color: rgba(232,223,200,0.45);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 32px;
+  }
+  .instructions {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(232,223,200,0.08);
+    border-left: 3px solid var(--amber);
+    border-radius: 4px; padding: 18px 20px;
+    text-align: left; margin-bottom: 20px;
+    font-size: 13px; line-height: 2; color: rgba(232,223,200,0.5);
+  }
+  .instructions strong { color: rgba(232,223,200,0.8); }
+  .instructions a { color: var(--amber); }
+  .input-field {
+    width: 100%; padding: 14px 16px;
+    background: rgba(232,223,200,0.04);
+    border: 1px solid rgba(232,223,200,0.15);
+    border-radius: 4px; color: var(--bone);
+    font-family: 'Barlow Condensed', monospace;
+    font-size: 14px; letter-spacing: 0.02em;
+    outline: none; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--amber); }
+  .btn-primary {
+    width: 100%; padding: 16px;
+    background: var(--amber); border: none; border-radius: 4px;
+    color: var(--shadow); font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #e8930b; transform: translateY(-1px); }
+  .btn-primary:disabled { background: rgba(212,131,10,0.3); color: rgba(0,0,0,0.3); cursor: not-allowed; transform: none; }
+
+  /* ── Sign-in screen ── */
+  #signin-screen {
+    min-height: 100vh; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center;
+  }
+  .signin-inner { max-width: 380px; width: 100%; }
+
+  /* ── Loading screen ── */
+  #loading-screen {
+    min-height: 100vh; align-items: center; justify-content: center;
+    text-align: center; gap: 16px;
+  }
+  .loading-wolves { font-size: 36px; display: flex; gap: 8px; justify-content: center; }
+  .loading-wolves span { animation: wolfBounce 1s ease-in-out infinite; }
+  .loading-wolves span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-wolves span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes wolfBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .loading-msg { font-size: 14px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(232,223,200,0.4); }
+
+  /* ── Main app ── */
+  #app-screen {
+    min-height: 100vh;
+    padding: 28px 20px 40px;
+    max-width: 520px; margin: 0 auto; width: 100%;
+  }
+
+  /* Header */
+  .app-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .app-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 0.06em;
+    color: var(--bone);
+    text-shadow: 0 0 20px rgba(212,131,10,0.2);
+  }
+  .app-sub { font-size: 12px; color: rgba(232,223,200,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+  .sync-btn {
+    background: rgba(232,223,200,0.05); border: 1px solid rgba(232,223,200,0.1);
+    border-radius: 4px; color: rgba(232,223,200,0.4);
+    font-size: 11px; padding: 6px 12px; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .sync-btn:hover { color: var(--bone); border-color: rgba(232,223,200,0.3); }
+
+  /* Quote */
+  .howl-box {
+    background: rgba(212,131,10,0.07);
+    border: 1px solid rgba(212,131,10,0.2);
+    border-left: 3px solid var(--amber);
+    border-radius: 4px; padding: 14px 18px;
+    margin-bottom: 24px; text-align: center;
+    transition: transform 0.4s ease;
+    min-height: 54px; display: flex; align-items: center; justify-content: center;
+  }
+  .howl-box.pulse { transform: scale(1.015); }
+  .howl-text { font-size: 15px; letter-spacing: 0.04em; color: var(--fur); font-style: italic; line-height: 1.4; }
+  .howl-text.winning { color: #7abf52; }
+
+  /* ── WOLF PACK RACE TRACK ── */
+  .track-wrap {
+    position: relative; background: rgba(232,223,200,0.03);
+    border: 1px solid rgba(232,223,200,0.07);
+    border-radius: 6px; padding: 16px 12px 24px;
+    margin-bottom: 24px; overflow: hidden;
+  }
+  .track-label-row {
+    display: flex; justify-content: space-between;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(232,223,200,0.25); margin-bottom: 12px;
+  }
+  /* Ground line */
+  .ground { position: absolute; bottom: 20px; left: 12px; right: 12px; height: 1px; background: rgba(232,223,200,0.08); }
+
+  /* Runner row */
+  .runner-row { position: relative; height: 52px; }
+
+  /* YOUR wolf row */
+  .your-row { margin-bottom: 6px; }
+  .pack-row { }
+
+  .runner-track { position: relative; height: 100%; }
+
+  /* Progress bar behind */
+  .progress-fill {
+    position: absolute; top: 50%; left: 0;
+    height: 2px; transform: translateY(-50%);
+    transition: width 1s ease;
+    border-radius: 1px;
+  }
+  .progress-fill.you { background: linear-gradient(90deg, rgba(212,131,10,0.2), rgba(212,131,10,0.7)); }
+  .progress-fill.pack { background: linear-gradient(90deg, rgba(139,26,26,0.2), rgba(139,26,26,0.5)); }
+  .progress-fill.winning-fill { background: linear-gradient(90deg, rgba(90,138,60,0.2), rgba(90,138,60,0.8)); }
+
+  /* Wolf emoji runner */
+  .wolf-runner {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font-size: 28px; transition: left 1s ease;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+    white-space: nowrap; display: flex; align-items: center; gap: 3px;
+    line-height: 1;
+  }
+  .wolf-runner.you-wolf { animation: wolfRun 0.5s ease-in-out infinite alternate; }
+  @keyframes wolfRun { from { transform: translate(-50%, -52%); } to { transform: translate(-50%, -48%); } }
+
+  /* Pack wolves - staggered */
+  .pack-wolf { font-size: 22px; opacity: 0.55; transition: left 1s ease; position: absolute; top: 50%; }
+  .pack-wolf:nth-child(1) { animation: wolfRun 0.5s 0.0s ease-in-out infinite alternate; }
+  .pack-wolf:nth-child(2) { animation: wolfRun 0.5s 0.1s ease-in-out infinite alternate; font-size: 19px; opacity: 0.4; }
+  .pack-wolf:nth-child(3) { animation: wolfRun 0.5s 0.2s ease-in-out infinite alternate; font-size: 16px; opacity: 0.28; }
+  .pack-wolf:nth-child(4) { animation: wolfRun 0.5s 0.3s ease-in-out infinite alternate; font-size: 13px; opacity: 0.18; }
+
+  .runner-name {
+    position: absolute; bottom: 2px;
+    font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(232,223,200,0.3);
+    transition: left 1s ease; transform: translateX(-50%);
+  }
+
+  /* ── Stats ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: rgba(232,223,200,0.03);
+    border: 1px solid rgba(232,223,200,0.07);
+    border-radius: 4px; padding: 14px 8px; text-align: center;
+  }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .stat-val.you-color  { color: var(--amber); }
+  .stat-val.pack-color { color: var(--blood); }
+  .stat-val.pct-ahead  { color: var(--ahead); }
+  .stat-val.pct-close  { color: #c8a030; }
+  .stat-val.pct-behind { color: #a03030; }
+  .stat-label { font-size: 10px; color: rgba(232,223,200,0.28); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* Gap banner */
+  .gap-banner {
+    text-align: center; padding: 10px 14px; border-radius: 4px;
+    font-size: 14px; letter-spacing: 0.06em; margin-bottom: 18px;
+    display: none;
+  }
+  .gap-banner.behind { background: rgba(139,26,26,0.1); border: 1px solid rgba(139,26,26,0.25); color: rgba(200,80,80,0.9); display: block; }
+  .gap-banner.ahead  { background: rgba(90,138,60,0.08); border: 1px solid rgba(90,138,60,0.25); color: rgba(122,191,82,0.9); display: block; }
+
+  /* ── Week chart ── */
+  .chart-section { margin-bottom: 24px; }
+  .section-label {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(232,223,200,0.22); margin-bottom: 10px;
+  }
+  .bars { display: flex; gap: 5px; align-items: flex-end; height: 60px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .bar-pair { width: 100%; display: flex; gap: 2px; align-items: flex-end; height: 50px; }
+  .bar { flex: 1; border-radius: 2px 2px 0 0; transition: height 0.6s ease; }
+  .bar.pack-bar { background: rgba(139,26,26,0.35); border: 1px solid rgba(139,26,26,0.4); }
+  .bar.you-bar  { background: rgba(212,131,10,0.55); }
+  .bar.you-bar.won  { background: rgba(90,138,60,0.7); }
+  .bar.you-bar.today { background: rgba(212,131,10,0.8); }
+  .bar.empty { background: transparent; }
+  .day-label { font-size: 8px; color: rgba(232,223,200,0.2); letter-spacing: 0.05em; }
+  .day-label.today { color: var(--amber); }
+  .legend-row { display: flex; gap: 14px; justify-content: flex-end; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 9px; color: rgba(232,223,200,0.3); letter-spacing: 0.08em; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 1px; }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 14px; border-top: 1px solid rgba(232,223,200,0.06);
+    font-size: 11px; color: rgba(232,223,200,0.2); letter-spacing: 0.06em;
+  }
+  .signout-btn {
+    background: none; border: none; color: rgba(232,223,200,0.2);
+    font-size: 11px; cursor: pointer; letter-spacing: 0.06em;
+    font-family: 'Barlow Condensed', sans-serif;
+    transition: color 0.2s;
+  }
+  .signout-btn:hover { color: rgba(232,223,200,0.5); }
+
+  /* Error */
+  .error-bar {
+    background: rgba(139,26,26,0.15); border: 1px solid rgba(139,26,26,0.3);
+    border-radius: 4px; padding: 10px 14px; margin-bottom: 16px;
+    font-size: 13px; color: rgba(200,80,80,0.85); display: none;
+  }
+  .error-bar.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="forest-bg"></div>
+<div class="moon"></div>
+
+<!-- ══════════════════════ SETUP SCREEN ══════════════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-inner">
+    <span class="wolf-icon-big">🐺</span>
+    <div class="title-huge">Wolf Pack</div>
+    <div class="setup-sub">Race the pack. Become the Alpha.</div>
+
+    <div class="instructions">
+      <strong>Connect your Galaxy Watch (5 min)</strong><br>
+      1. <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → New Project<br>
+      2. APIs &amp; Services → Enable <strong>Fitness API</strong><br>
+      3. OAuth consent screen → scope: <code>fitness.activity.read</code><br>
+      4. Credentials → OAuth 2.0 Client ID → <strong>Web application</strong><br>
+      5. Add this page's URL to Authorized JS origins<br>
+      6. On your watch: Samsung Health → Connected Services → Google Fit → Enable<br>
+    </div>
+
+    <input id="client-id-input" class="input-field" type="text"
+      placeholder="Paste your Google OAuth Client ID here..." autocomplete="off">
+    <button class="btn-primary" id="setup-btn" disabled onclick="saveClientId()">
+      JOIN THE PACK →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════ SIGN-IN SCREEN ══════════════════════ -->
+<div id="signin-screen" class="screen">
+  <div class="signin-inner">
+    <div style="font-size:72px;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(212,131,10,0.5))">🐺</div>
+    <div class="title-huge" style="margin-bottom:8px">The Pack<br>Awaits</div>
+    <div style="font-size:14px;color:rgba(232,223,200,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:36px">
+      Connect Google Fit to race your alpha self
+    </div>
+    <button class="btn-primary" onclick="signIn()">CONNECT GOOGLE FIT →</button>
+    <div style="font-size:11px;color:rgba(232,223,200,0.2);margin-top:14px;letter-spacing:0.06em">
+      Reads step count only · Nothing stored
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ LOADING SCREEN ══════════════════════ -->
+<div id="loading-screen" class="screen">
+  <div class="loading-wolves">
+    <span>🐺</span><span>🐺</span><span>🐺</span>
+  </div>
+  <div class="loading-msg" id="load-msg">Tracking the pack...</div>
+</div>
+
+<!-- ══════════════════════ MAIN APP ══════════════════════ -->
+<div id="app-screen" class="screen">
+
+  <div class="app-header">
+    <div>
+      <div class="app-title">🐺 Wolf Pack</div>
+      <div class="app-sub" id="best-day-sub">Best day loading...</div>
+    </div>
+    <button class="sync-btn" onclick="loadData()">↺ Sync</button>
+  </div>
+
+  <div class="error-bar" id="error-bar"></div>
+
+  <!-- Howl quote -->
+  <div class="howl-box" id="howl-box">
+    <span class="howl-text" id="howl-text">The pack never stops running...</span>
+  </div>
+
+  <!-- Race Track -->
+  <div class="track-wrap">
+    <div class="track-label-row">
+      <span>YOU</span>
+      <span id="track-date">YOUR BEST DAY</span>
+    </div>
+
+    <!-- Your wolf -->
+    <div class="runner-row your-row">
+      <div class="runner-track" id="your-track">
+        <div class="progress-fill you" id="your-fill" style="width:0%"></div>
+        <div class="wolf-runner you-wolf" id="your-wolf" style="left:4%">🐺</div>
+        <div class="runner-name" id="your-name" style="left:4%">you</div>
+      </div>
+    </div>
+
+    <!-- Pack wolves (your best-day ghost) -->
+    <div class="runner-row pack-row">
+      <div class="runner-track" id="pack-track">
+        <div class="progress-fill pack" id="pack-fill" style="width:84%"></div>
+        <!-- 4 staggered pack wolves at ghost position -->
+        <div class="pack-wolf" id="pw1" style="left:88%;transform:translate(-50%,-50%)">🐺</div>
+        <div class="pack-wolf" id="pw2" style="left:84%;transform:translate(-50%,-50%)">🐺</div>
+        <div class="pack-wolf" id="pw3" style="left:80%;transform:translate(-50%,-50%)">🐺</div>
+        <div class="pack-wolf" id="pw4" style="left:76%;transform:translate(-50%,-50%)">🐺</div>
+        <div class="runner-name" style="left:88%">alpha pack</div>
+      </div>
+    </div>
+
+    <div class="ground"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val you-color" id="stat-today">—</div>
+      <div class="stat-label">Your Steps</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val pack-color" id="stat-pack">—</div>
+      <div class="stat-label">Pack Steps</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-pct">—</div>
+      <div class="stat-label">% of Pack</div>
+    </div>
+  </div>
+
+  <!-- Gap banner -->
+  <div class="gap-banner" id="gap-banner"></div>
+
+  <!-- Week chart -->
+  <div class="chart-section">
+    <div class="section-label">This Week vs The Pack</div>
+    <div class="bars" id="week-bars">
+      <!-- Generated by JS -->
+    </div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(139,26,26,0.5)"></div>Pack</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(212,131,10,0.6)"></div>You</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span id="last-sync"></span>
+    <button class="signout-btn" onclick="signOut()">Leave pack</button>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CONFIG & STATE
+// ═══════════════════════════════════════════════════════════════════
+const SCOPES = 'https://www.googleapis.com/auth/fitness.activity.read';
+const DAYS = ['M','T','W','T','F','S','S'];
+
+let CLIENT_ID = localStorage.getItem('wolf_client_id') || '';
+let token = null;
+let refreshInterval = null;
+let quoteInterval = null;
+let state = { today: 0, pack: 0, packDate: '', week: [], lastRefresh: null };
+
+const HOWLS = [
+  "The pack doesn't wait for the weak.",
+  "Your alpha self is pulling ahead.",
+  "Run harder. The pack is watching.",
+  "Every step closes the gap.",
+  "You built this pack. Now outrun it.",
+  "The forest remembers who showed up.",
+];
+const TAUNTS = [
+  "The pack is leaving you behind.",
+  "Wolves don't rest. Why do you?",
+  "You're falling out of the pack.",
+  "Alpha status is slipping away.",
+];
+const WINS = [
+  "You ARE the pack now.",
+  "The alpha has returned. Don't stop.",
+  "New record forming. Keep running.",
+  "The forest bows to the alpha.",
+  "Run. Set a new legend.",
+];
+
+// ═══════════════════════════════════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════════════════════
+const cidInput = document.getElementById('client-id-input');
+const setupBtn = document.getElementById('setup-btn');
+cidInput.value = CLIENT_ID;
+setupBtn.disabled = !CLIENT_ID.trim();
+cidInput.addEventListener('input', () => { setupBtn.disabled = !cidInput.value.trim(); });
+
+function saveClientId() {
+  CLIENT_ID = cidInput.value.trim();
+  localStorage.setItem('wolf_client_id', CLIENT_ID);
+  show('signin-screen');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  OAUTH
+// ═══════════════════════════════════════════════════════════════════
+function signIn() {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: location.href.split('?')[0].split('#')[0],
+    response_type: 'token',
+    scope: SCOPES,
+    prompt: 'consent',
+  });
+  location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+function signOut() {
+  token = null;
+  clearInterval(refreshInterval);
+  clearInterval(quoteInterval);
+  show('signin-screen');
+}
+
+// Handle OAuth redirect
+function checkHash() {
+  const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+  if (hash.access_token) {
+    token = hash.access_token;
+    history.replaceState({}, '', location.pathname);
+    show('loading-screen');
+    loadData();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  FITNESS API
+// ═══════════════════════════════════════════════════════════════════
+function startOf(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+function endOf(d)   { const x = new Date(d); x.setHours(23,59,59,999); return x.getTime(); }
+
+async function fetchSteps(startMs, endMs) {
+  const res = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      aggregateBy: [{ dataTypeName: 'com.google.step_count.delta', dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps' }],
+      bucketByTime: { durationMillis: endMs - startMs },
+      startTimeMillis: startMs, endTimeMillis: endMs,
+    }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  let total = 0;
+  data.bucket?.forEach(b => b.dataset?.forEach(ds => ds.point?.forEach(p => p.value?.forEach(v => { total += v.intVal || 0; }))));
+  return total;
+}
+
+async function findBestDay() {
+  const today = new Date();
+  let best = { steps: 0, date: today };
+  for (let week = 0; week < 13; week++) {
+    const end = new Date(today); end.setDate(today.getDate() - week * 7);
+    const start = new Date(end); start.setDate(end.getDate() - 6);
+    const res = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aggregateBy: [{ dataTypeName: 'com.google.step_count.delta', dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps' }],
+        bucketByTime: { durationMillis: 86400000 },
+        startTimeMillis: startOf(start), endTimeMillis: endOf(end),
+      }),
+    });
+    const data = await res.json();
+    data.bucket?.forEach(b => {
+      let steps = 0;
+      b.dataset?.forEach(ds => ds.point?.forEach(p => p.value?.forEach(v => { steps += v.intVal || 0; })));
+      if (steps > best.steps) best = { steps, date: new Date(+b.startTimeMillis) };
+    });
+  }
+  return best;
+}
+
+async function fetchWeek() {
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(today); monday.setDate(today.getDate() + mondayOffset);
+  const results = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    if (startOf(d) > Date.now()) { results.push(null); continue; }
+    results.push(await fetchSteps(startOf(d), endOf(d)));
+  }
+  return results;
+}
+
+async function loadData() {
+  if (!token) return;
+  show('loading-screen');
+  setLoadMsg('Tracking the pack across 90 days...');
+  const errBar = document.getElementById('error-bar');
+  errBar.classList.remove('show');
+  try {
+    setLoadMsg('Finding your alpha day...');
+    const best = await findBestDay();
+    state.pack = best.steps;
+    state.packDate = best.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+    setLoadMsg('Loading this week...');
+    state.week = await fetchWeek();
+
+    setLoadMsg('Counting today\'s steps...');
+    state.today = await fetchSteps(startOf(new Date()), endOf(new Date()));
+    state.lastRefresh = new Date();
+
+    show('app-screen');
+    renderApp();
+    startQuotes();
+    clearInterval(refreshInterval);
+    refreshInterval = setInterval(loadData, 5 * 60 * 1000);
+  } catch (e) {
+    show('app-screen');
+    errBar.textContent = 'Failed to load fitness data. Your token may have expired — try signing in again.';
+    errBar.classList.add('show');
+  }
+}
+
+function setLoadMsg(msg) { document.getElementById('load-msg').textContent = msg; }
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderApp() {
+  const { today, pack, packDate, week, lastRefresh } = state;
+  const ratio = pack > 0 ? Math.min(today / pack, 1.15) : 0;
+  const pct = pack > 0 ? Math.round((today / pack) * 100) : 0;
+  const isAhead = today >= pack;
+  const gap = Math.max(0, pack - today);
+
+  // Header
+  document.getElementById('best-day-sub').textContent = `Alpha day: ${packDate} · ${pack.toLocaleString()} steps`;
+  document.getElementById('track-date').textContent = packDate.toUpperCase();
+
+  // Track positions
+  const playerPos = Math.max(4, Math.min(ratio * 84, 88));
+  const packPos   = 88;
+
+  // Your wolf
+  const yourFill = document.getElementById('your-fill');
+  const yourWolf = document.getElementById('your-wolf');
+  const yourName = document.getElementById('your-name');
+  yourFill.style.width = `${playerPos}%`;
+  yourFill.className = `progress-fill ${isAhead ? 'winning-fill' : 'you'}`;
+  yourWolf.style.left = `${playerPos}%`;
+  yourName.style.left  = `${playerPos}%`;
+
+  // Pack wolves (trail behind ghost pos)
+  const offsets = [packPos, packPos - 5, packPos - 10, packPos - 16];
+  ['pw1','pw2','pw3','pw4'].forEach((id, i) => {
+    document.getElementById(id).style.left = `${offsets[i]}%`;
+  });
+
+  // Stats
+  document.getElementById('stat-today').textContent = today.toLocaleString();
+  document.getElementById('stat-pack').textContent  = pack.toLocaleString();
+  const pctEl = document.getElementById('stat-pct');
+  pctEl.textContent = pct + '%';
+  pctEl.className = `stat-val ${isAhead ? 'pct-ahead' : pct > 70 ? 'pct-close' : 'pct-behind'}`;
+
+  // Gap banner
+  const banner = document.getElementById('gap-banner');
+  if (isAhead) {
+    banner.textContent = '🐺 Alpha status achieved — you\'re ahead of the pack';
+    banner.className = 'gap-banner ahead';
+  } else {
+    banner.textContent = `🐾 ${gap.toLocaleString()} steps behind the pack`;
+    banner.className = 'gap-banner behind';
+  }
+
+  // Week chart
+  renderWeek(week, pack, isAhead);
+
+  // Last sync
+  if (lastRefresh) {
+    document.getElementById('last-sync').textContent =
+      `Synced ${lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+}
+
+function renderWeek(week, pack, isAhead) {
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  const container = document.getElementById('week-bars');
+  container.innerHTML = '';
+  week.forEach((steps, i) => {
+    const ratio = steps === null || pack === 0 ? null : steps / pack;
+    const isToday = i === todayIdx;
+    const won = ratio !== null && ratio >= 1;
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const pair = document.createElement('div'); pair.className = 'bar-pair';
+    // Pack bar (always 100%)
+    const packBar = document.createElement('div');
+    packBar.className = 'bar pack-bar'; packBar.style.height = '100%';
+    // Your bar
+    const youBar = document.createElement('div');
+    youBar.className = `bar you-bar${won ? ' won' : ''}${isToday ? ' today' : ''}`;
+    youBar.style.height = ratio === null ? '0%' : `${Math.min(ratio * 100, 120)}%`;
+    pair.append(packBar, youBar);
+    const label = document.createElement('div');
+    label.className = `day-label${isToday ? ' today' : ''}`;
+    label.textContent = DAYS[i];
+    col.append(pair, label);
+    container.appendChild(col);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  QUOTES
+// ═══════════════════════════════════════════════════════════════════
+function startQuotes() {
+  clearInterval(quoteInterval);
+  updateQuote();
+  quoteInterval = setInterval(updateQuote, 5000);
+}
+
+function updateQuote() {
+  const { today, pack } = state;
+  const gap = pack - today;
+  const isAhead = today >= pack;
+  const pool = isAhead ? WINS : gap > pack * 0.4 ? TAUNTS : HOWLS;
+  const text = pool[Math.floor(Math.random() * pool.length)];
+  const box  = document.getElementById('howl-box');
+  const el   = document.getElementById('howl-text');
+  el.textContent = '🐺 ' + text;
+  el.className   = `howl-text${isAhead ? ' winning' : ''}`;
+  box.classList.add('pulse');
+  setTimeout(() => box.classList.remove('pulse'), 500);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+(function init() {
+  // Already have client ID saved?
+  if (CLIENT_ID) {
+    // Check for OAuth token in hash first
+    const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+    if (hash.access_token) {
+      token = hash.access_token;
+      history.replaceState({}, '', location.pathname);
+      show('loading-screen');
+      loadData();
+    } else {
+      show('signin-screen');
+    }
+  } else {
+    show('setup-screen');
+  }
+})();
+</script>
+</body>
+</html>
