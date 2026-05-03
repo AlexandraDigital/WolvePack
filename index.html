@@ -107,11 +107,10 @@
   }
   .btn-primary:hover:not(:disabled) { background: #e8930b; transform: translateY(-1px); }
   .btn-primary:disabled { 
-    background: rgba(212,131,10,0.15); 
-    color: rgba(13,11,8,0.5); 
+    background: rgba(212,131,10,0.2); 
+    color: rgba(13,11,8,0.6); 
     cursor: not-allowed; 
-    transform: none;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   /* ── Sign-in screen ── */
@@ -621,7 +620,20 @@ const cidInput = document.getElementById('client-id-input');
 const setupBtn = document.getElementById('setup-btn');
 cidInput.value = CLIENT_ID;
 setupBtn.disabled = !CLIENT_ID.trim();
-cidInput.addEventListener('input', () => { setupBtn.disabled = !cidInput.value.trim(); });
+
+// Helper function to update button state
+function updateSetupButton() {
+  setupBtn.disabled = !cidInput.value.trim();
+}
+
+// Listen for input changes (typing)
+cidInput.addEventListener('input', updateSetupButton);
+
+// Listen for paste events to catch pasted content immediately
+cidInput.addEventListener('paste', () => {
+  // Small delay to ensure the paste is processed
+  setTimeout(updateSetupButton, 0);
+});
 
 function saveClientId() {
   CLIENT_ID = cidInput.value.trim();
