@@ -404,7 +404,7 @@
 
     <input id="client-id-input" class="input-field" type="text"
       placeholder="Paste your Google OAuth Client ID here..." autocomplete="off">
-    <button class="btn-primary" id="setup-btn" disabled onclick="saveClientId()">
+    <button class="btn-primary" id="setup-btn" disabled>
       JOIN THE PACK →
     </button>
   </div>
@@ -645,12 +645,16 @@ cidInput.addEventListener('drop', updateSetupButton);
 // Also check when user focuses away
 cidInput.addEventListener('blur', updateSetupButton);
 
-// Fallback: check button state when user tries to interact
+// Main click handler - this actually saves the client ID
 setupBtn.addEventListener('click', (e) => {
+  e.preventDefault();
   updateSetupButton();
   if (setupBtn.disabled) {
-    e.preventDefault();
+    console.log('Button still disabled, focusing input');
     cidInput.focus();
+  } else {
+    console.log('Button enabled, saving client ID:', cidInput.value);
+    saveClientId();
   }
 });
 
