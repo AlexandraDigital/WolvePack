@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wolf Pack · Run With Your Best</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.5.3/qrcode.min.js"></script>
 <style>
   :root {
     --bone:    #e8dfc8;
@@ -114,6 +115,23 @@
   }
   .signin-inner { max-width: 380px; width: 100%; }
 
+  /* ── QR Code screen ── */
+  #qr-screen {
+    min-height: 100vh; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center;
+  }
+  .qr-inner { max-width: 400px; width: 100%; }
+  .qr-container {
+    background: white; padding: 20px; border-radius: 8px;
+    margin: 24px 0; display: inline-block;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  #qrcode { display: inline-block; }
+  .qr-subtitle { font-size: 14px; color: rgba(232,223,200,0.6); 
+    letter-spacing: 0.06em; margin-bottom: 20px; }
+  .device-note { font-size: 12px; color: rgba(232,223,200,0.4);
+    letter-spacing: 0.06em; margin-top: 20px; line-height: 1.6; }
+
   /* ── Loading screen ── */
   #loading-screen {
     min-height: 100vh; align-items: center; justify-content: center;
@@ -132,6 +150,66 @@
     padding: 28px 20px 40px;
     max-width: 520px; margin: 0 auto; width: 100%;
   }
+
+  /* ── Watch mode ── */
+  #watch-mode {
+    width: 100vw; height: 100vh;
+    padding: 16px 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+  .watch-header {
+    text-align: center; margin-bottom: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+  }
+  .watch-stat {
+    background: rgba(232,223,200,0.05);
+    border: 1px solid rgba(232,223,200,0.1);
+    border-radius: 4px;
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .watch-stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .watch-stat-label {
+    font-size: 10px;
+    color: rgba(232,223,200,0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .watch-race {
+    background: rgba(232,223,200,0.03);
+    border: 1px solid rgba(232,223,200,0.07);
+    border-radius: 4px;
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .watch-wolf {
+    font-size: 16px;
+    margin: 8px 0;
+  }
+  .watch-sync-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--amber);
+    border: none;
+    border-radius: 4px;
+    color: var(--shadow);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .watch-sync-btn:active { background: #e8930b; }
 
   /* Header */
   .app-header {
@@ -180,19 +258,12 @@
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
     color: rgba(232,223,200,0.25); margin-bottom: 12px;
   }
-  /* Ground line */
   .ground { position: absolute; bottom: 20px; left: 12px; right: 12px; height: 1px; background: rgba(232,223,200,0.08); }
-
-  /* Runner row */
   .runner-row { position: relative; height: 52px; }
-
-  /* YOUR wolf row */
   .your-row { margin-bottom: 6px; }
   .pack-row { }
-
   .runner-track { position: relative; height: 100%; }
 
-  /* Progress bar behind */
   .progress-fill {
     position: absolute; top: 50%; left: 0;
     height: 2px; transform: translateY(-50%);
@@ -203,7 +274,6 @@
   .progress-fill.pack { background: linear-gradient(90deg, rgba(139,26,26,0.2), rgba(139,26,26,0.5)); }
   .progress-fill.winning-fill { background: linear-gradient(90deg, rgba(90,138,60,0.2), rgba(90,138,60,0.8)); }
 
-  /* Wolf emoji runner */
   .wolf-runner {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
     font-size: 28px; transition: left 1s ease;
@@ -214,7 +284,6 @@
   .wolf-runner.you-wolf { animation: wolfRun 0.5s ease-in-out infinite alternate; }
   @keyframes wolfRun { from { transform: translate(-50%, -52%); } to { transform: translate(-50%, -48%); } }
 
-  /* Pack wolves - staggered */
   .pack-wolf { font-size: 22px; opacity: 0.55; transition: left 1s ease; position: absolute; top: 50%; }
   .pack-wolf:nth-child(1) { animation: wolfRun 0.5s 0.0s ease-in-out infinite alternate; }
   .pack-wolf:nth-child(2) { animation: wolfRun 0.5s 0.1s ease-in-out infinite alternate; font-size: 19px; opacity: 0.4; }
@@ -294,6 +363,13 @@
     font-size: 13px; color: rgba(200,80,80,0.85); display: none;
   }
   .error-bar.show { display: block; }
+
+  /* Device detection */
+  @media (max-width: 500px) {
+    .moon { top: 16px; right: 24px; width: 40px; height: 40px; }
+    .title-huge { font-size: 36px; }
+    .setup-inner, .signin-inner, .qr-inner { max-width: 90vw; }
+  }
 </style>
 </head>
 <body>
@@ -341,6 +417,25 @@
   </div>
 </div>
 
+<!-- ══════════════════════ QR CODE SCREEN ══════════════════════ -->
+<div id="qr-screen" class="screen">
+  <div class="qr-inner">
+    <span class="wolf-icon-big">🐺</span>
+    <div class="title-huge" style="margin-bottom:8px">Scan on Your Watch</div>
+    <div class="qr-subtitle">Point your Galaxy Watch's camera at this code</div>
+    
+    <div class="qr-container" id="qr-container"></div>
+
+    <div class="device-note">
+      ✓ Take a screenshot and open it on your watch<br>
+      ✓ Or just point your watch at this screen<br>
+      ✓ No more setup needed on the watch!
+    </div>
+
+    <button class="btn-primary" onclick="signOut()" style="margin-top:24px">BACK TO LOGIN</button>
+  </div>
+</div>
+
 <!-- ══════════════════════ LOADING SCREEN ══════════════════════ -->
 <div id="loading-screen" class="screen">
   <div class="loading-wolves">
@@ -383,11 +478,10 @@
       </div>
     </div>
 
-    <!-- Pack wolves (your best-day ghost) -->
+    <!-- Pack wolves -->
     <div class="runner-row pack-row">
       <div class="runner-track" id="pack-track">
         <div class="progress-fill pack" id="pack-fill" style="width:84%"></div>
-        <!-- 4 staggered pack wolves at ghost position -->
         <div class="pack-wolf" id="pw1" style="left:88%;transform:translate(-50%,-50%)">🐺</div>
         <div class="pack-wolf" id="pw2" style="left:84%;transform:translate(-50%,-50%)">🐺</div>
         <div class="pack-wolf" id="pw3" style="left:80%;transform:translate(-50%,-50%)">🐺</div>
@@ -421,9 +515,7 @@
   <!-- Week chart -->
   <div class="chart-section">
     <div class="section-label">This Week vs The Pack</div>
-    <div class="bars" id="week-bars">
-      <!-- Generated by JS -->
-    </div>
+    <div class="bars" id="week-bars"></div>
     <div class="legend-row">
       <div class="legend-item"><div class="legend-dot" style="background:rgba(139,26,26,0.5)"></div>Pack</div>
       <div class="legend-item"><div class="legend-dot" style="background:rgba(212,131,10,0.6)"></div>You</div>
@@ -437,15 +529,45 @@
 
 </div>
 
+<!-- ══════════════════════ WATCH MODE ══════════════════════ -->
+<div id="watch-mode" style="display:none">
+  <div class="watch-header">🐺 PACK RACE</div>
+  
+  <div class="watch-stat">
+    <div class="watch-stat-val" id="watch-today">—</div>
+    <div class="watch-stat-label">YOUR STEPS</div>
+  </div>
+
+  <div class="watch-stat">
+    <div class="watch-stat-val" id="watch-pct">—</div>
+    <div class="watch-stat-label">% TO BEAT</div>
+  </div>
+
+  <div class="watch-race">
+    <div style="text-align: center; margin-bottom: 8px;">
+      <span class="watch-wolf" id="watch-you-wolf">🐺</span>
+      <div style="font-size: 10px; color: rgba(232,223,200,0.4);">YOU</div>
+    </div>
+    <div style="text-align: center;">
+      <span class="watch-wolf">🐺</span>
+      <div style="font-size: 10px; color: rgba(232,223,200,0.4);">PACK</div>
+    </div>
+  </div>
+
+  <button class="watch-sync-btn" onclick="loadData()">↺ SYNC</button>
+  <button class="watch-sync-btn" style="background: rgba(139,26,26,0.5); margin-top: 4px;" onclick="signOut()">LEAVE</button>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════
 //  CONFIG & STATE
 // ═══════════════════════════════════════════════════════════════════
 const SCOPES = 'https://www.googleapis.com/auth/fitness.activity.read';
 const DAYS = ['M','T','W','T','F','S','S'];
+const isWatchDevice = () => window.innerWidth <= 500 || /watch|wearable/i.test(navigator.userAgent);
 
 let CLIENT_ID = localStorage.getItem('wolf_client_id') || '';
-let token = null;
+let token = localStorage.getItem('wolf_token') || null;
 let refreshInterval = null;
 let quoteInterval = null;
 let state = { today: 0, pack: 0, packDate: '', week: [], lastRefresh: null };
@@ -478,6 +600,12 @@ const WINS = [
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  document.getElementById('watch-mode').style.display = 'none';
+}
+
+function showWatchMode() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('watch-mode').style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -496,7 +624,7 @@ function saveClientId() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  OAUTH
+//  OAUTH & QR CODE
 // ═══════════════════════════════════════════════════════════════════
 function signIn() {
   const params = new URLSearchParams({
@@ -509,8 +637,23 @@ function signIn() {
   location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
+function generateQRCode(token, clientId) {
+  const qrData = JSON.stringify({ token, clientId });
+  const container = document.getElementById('qr-container');
+  container.innerHTML = '';
+  new QRCode(container, {
+    text: qrData,
+    width: 280,
+    height: 280,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
 function signOut() {
   token = null;
+  localStorage.removeItem('wolf_token');
   clearInterval(refreshInterval);
   clearInterval(quoteInterval);
   show('signin-screen');
@@ -521,9 +664,34 @@ function checkHash() {
   const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
   if (hash.access_token) {
     token = hash.access_token;
+    localStorage.setItem('wolf_token', token);
     history.replaceState({}, '', location.pathname);
-    show('loading-screen');
-    loadData();
+    
+    // Show QR code for watch setup
+    generateQRCode(token, CLIENT_ID);
+    show('qr-screen');
+  }
+}
+
+// Check for QR code data in URL (watch scanning)
+function checkQRData() {
+  const params = new URLSearchParams(location.search);
+  const qrData = params.get('qr');
+  if (qrData) {
+    try {
+      const data = JSON.parse(qrData);
+      token = data.token;
+      CLIENT_ID = data.clientId;
+      localStorage.setItem('wolf_token', token);
+      localStorage.setItem('wolf_client_id', CLIENT_ID);
+      history.replaceState({}, '', location.pathname);
+      
+      show('loading-screen');
+      loadData();
+      if (isWatchDevice()) showWatchMode();
+    } catch (e) {
+      console.error('Invalid QR code data', e);
+    }
   }
 }
 
@@ -604,13 +772,18 @@ async function loadData() {
     setLoadMsg('Loading this week...');
     state.week = await fetchWeek();
 
-    setLoadMsg('Counting today\'s steps...');
+    setLoadMsg('Counting today\\'s steps...');
     state.today = await fetchSteps(startOf(new Date()), endOf(new Date()));
     state.lastRefresh = new Date();
 
-    show('app-screen');
-    renderApp();
-    startQuotes();
+    if (isWatchDevice()) {
+      showWatchMode();
+      renderWatchMode();
+    } else {
+      show('app-screen');
+      renderApp();
+      startQuotes();
+    }
     clearInterval(refreshInterval);
     refreshInterval = setInterval(loadData, 5 * 60 * 1000);
   } catch (e) {
@@ -621,6 +794,28 @@ async function loadData() {
 }
 
 function setLoadMsg(msg) { document.getElementById('load-msg').textContent = msg; }
+
+// ═══════════════════════════════════════════════════════════════════
+//  WATCH MODE RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderWatchMode() {
+  const { today, pack } = state;
+  const pct = pack > 0 ? Math.round((today / pack) * 100) : 0;
+  
+  document.getElementById('watch-today').textContent = today.toLocaleString();
+  document.getElementById('watch-pct').textContent = pct + '%';
+  
+  // Simple emoji animation based on performance
+  const youWolf = document.getElementById('watch-you-wolf');
+  if (today >= pack) {
+    youWolf.textContent = '🐺';
+    youWolf.style.animation = 'pulse 1s infinite';
+  } else if (pct > 70) {
+    youWolf.textContent = '🐺';
+  } else {
+    youWolf.textContent = '🐕';
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 //  RENDER
@@ -649,7 +844,7 @@ function renderApp() {
   yourWolf.style.left = `${playerPos}%`;
   yourName.style.left  = `${playerPos}%`;
 
-  // Pack wolves (trail behind ghost pos)
+  // Pack wolves
   const offsets = [packPos, packPos - 5, packPos - 10, packPos - 16];
   ['pw1','pw2','pw3','pw4'].forEach((id, i) => {
     document.getElementById(id).style.left = `${offsets[i]}%`;
@@ -665,7 +860,7 @@ function renderApp() {
   // Gap banner
   const banner = document.getElementById('gap-banner');
   if (isAhead) {
-    banner.textContent = '🐺 Alpha status achieved — you\'re ahead of the pack';
+    banner.textContent = '🐺 Alpha status achieved — you\\'re ahead of the pack';
     banner.className = 'gap-banner ahead';
   } else {
     banner.textContent = `🐾 ${gap.toLocaleString()} steps behind the pack`;
@@ -693,10 +888,8 @@ function renderWeek(week, pack, isAhead) {
     const col = document.createElement('div');
     col.className = 'bar-col';
     const pair = document.createElement('div'); pair.className = 'bar-pair';
-    // Pack bar (always 100%)
     const packBar = document.createElement('div');
     packBar.className = 'bar pack-bar'; packBar.style.height = '100%';
-    // Your bar
     const youBar = document.createElement('div');
     youBar.className = `bar you-bar${won ? ' won' : ''}${isToday ? ' today' : ''}`;
     youBar.style.height = ratio === null ? '0%' : `${Math.min(ratio * 100, 120)}%`;
@@ -736,18 +929,21 @@ function updateQuote() {
 //  INIT
 // ═══════════════════════════════════════════════════════════════════
 (function init() {
+  // Check for QR code data first (watch scanning)
+  checkQRData();
+  
   // Already have client ID saved?
-  if (CLIENT_ID) {
+  if (CLIENT_ID && !token) {
     // Check for OAuth token in hash first
     const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
     if (hash.access_token) {
-      token = hash.access_token;
-      history.replaceState({}, '', location.pathname);
-      show('loading-screen');
-      loadData();
+      checkHash();
     } else {
       show('signin-screen');
     }
+  } else if (token) {
+    show('loading-screen');
+    loadData();
   } else {
     show('setup-screen');
   }
