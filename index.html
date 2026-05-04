@@ -491,6 +491,17 @@ input[type=range] { flex:1; accent-color: var(--orange); }
 </head>
 <body>
 
+<!-- ══ Wolf Sounds ══ -->
+<audio id="wolf-howl-1" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
+</audio>
+<audio id="wolf-howl-2" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
+</audio>
+<audio id="wolf-growl" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
+</audio>
+
 <!-- ══ XP Toast ══ -->
 <div class="xp-toast" id="xp-toast">+0 XP</div>
 
@@ -1490,11 +1501,62 @@ function enterApp() {
   uiInterval = setInterval(updateUI, 2000);
 }
 
+function playWolfSounds() {
+  // Generate wolf howl sounds using Web Audio API
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Howl 1 - Taunting
+  setTimeout(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(200, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.8);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.8);
+  }, 0);
+  
+  // Growl - Encouraging
+  setTimeout(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(150, audioContext.currentTime);
+    osc.frequency.setValueAtTime(140, audioContext.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.5);
+  }, 600);
+  
+  // Howl 2 - Triumphant
+  setTimeout(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(220, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, audioContext.currentTime + 1);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 1);
+  }, 1000);
+}
+
 function logout() {
   if (!confirm('🐺 Switch wolves? You\'ll stay logged out until you enter the pack again.')) return;
-  gs.username = null;
-  saveGS();
-  location.reload();
+  playWolfSounds();
+  setTimeout(() => {
+    gs.username = null;
+    saveGS();
+    location.reload();
+  }, 2500);
 }
 
 function resetAll() {
