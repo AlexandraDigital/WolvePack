@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🐺 WolvePack</title>
+<style>
+/* ── Reset & base ── */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --orange: #ff6b35;
+  --gold:   #ffd700;
+  --dark:   #0f0f1a;
+  --card:   rgba(255,107,53,0.08);
+  --border: rgba(255,107,53,0.35);
+  --dim:    rgba(255,255,255,0.35);
+  --green:  #4caf50;
+  --blue:   #4a90d9;
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+  background: var(--dark);
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Screens ── */
+.screen { display: none; min-height: 100vh; padding: 16px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#main-screen { justify-content: flex-start; padding: 0 0 80px; }
+#main-screen.active { display: block; }
+
+/* ── Setup screen ── */
+.setup-box {
+  width: 100%; max-width: 420px;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 22px;
+  box-shadow: 0 0 40px rgba(255,107,53,0.2);
+}
+.logo { text-align:center; margin-bottom: 20px; }
+.logo .wolf-big { font-size: 56px; display:block;
+  animation: pulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(255,107,53,0.6)); }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+.logo h1 { font-size: 2em; color: var(--orange); letter-spacing: 3px; margin: 6px 0 2px; }
+.logo p  { font-size: 0.8em; color: var(--dim); font-style: italic; }
+
+.field-label {
+  display:block; font-size: 0.7em; text-transform:uppercase;
+  letter-spacing: 1px; color: var(--gold); margin-bottom: 6px; margin-top: 14px;
+}
+.text-input {
+  width:100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid var(--border);
+  border-radius: 8px; color: #fff;
+  font-size: 1em; outline: none;
+  transition: border-color 0.2s;
+}
+.text-input:focus { border-color: var(--orange); }
+
+.sensor-box {
+  margin: 16px 0;
+  background: rgba(255,215,0,0.07);
+  border: 1.5px dashed rgba(255,215,0,0.4);
+  border-radius: 10px; padding: 14px;
+  text-align: center;
+}
+.sensor-box p { font-size: 0.82em; color: var(--gold); margin-bottom: 10px; line-height: 1.5; }
+.sensor-status { font-size: 0.75em; margin-top: 8px; color: var(--dim); min-height: 18px; }
+.sensor-status.ok  { color: var(--green); }
+.sensor-status.err { color: #f44336; }
+
+.btn {
+  width:100%; padding: 13px;
+  border: none; border-radius: 9px;
+  font-weight: bold; font-size: 0.95em;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+  margin-top: 10px;
+}
+.btn-primary { background: linear-gradient(135deg,#ff6b35,#ffa040); color:#fff; }
+.btn-primary:active { transform:scale(0.98); }
+.btn-ghost   { background: rgba(255,107,53,0.12); border: 1.5px solid var(--border); color: var(--orange); }
+.btn-ghost:active { background: rgba(255,107,53,0.22); }
+.btn-sm {
+  padding: 8px 14px; border-radius: 7px; font-size: 0.78em;
+  font-weight: bold; letter-spacing: 1px; text-transform: uppercase;
+  border: none; cursor: pointer; transition: all 0.15s;
+}
+
+/* ── Main screen ── */
+/* Sticky header */
+.app-header {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(10,10,22,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,107,53,0.15);
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.app-header-left h2 { font-size: 1.1em; color: var(--orange); letter-spacing: 2px; }
+.app-header-left p  { font-size: 0.68em; color: var(--dim); letter-spacing: 1px; }
+.sensor-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #555; display:inline-block; margin-right: 5px;
+  transition: background 0.5s;
+}
+.sensor-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.sensor-label { font-size: 0.7em; color: var(--dim); }
+
+/* Rank strip */
+.rank-strip {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.rank-badge {
+  font-size: 0.68em; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 3px; border: 1px solid;
+}
+.xp-bar-outer { flex:1; height: 4px; background: rgba(74,144,217,0.15); border-radius:2px; margin: 0 12px; }
+.xp-bar-inner { height:100%; background: var(--blue); border-radius:2px; transition: width 0.8s ease; }
+.xp-label { font-size:0.68em; color:rgba(74,144,217,0.7); white-space:nowrap; }
+
+/* Wolf arena */
+.wolf-arena {
+  display: flex; justify-content: space-around; align-items: flex-end;
+  height: 110px; padding: 10px 16px;
+  background: rgba(0,0,0,0.2);
+  overflow: hidden; position:relative;
+}
+.wolf-arena::before {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:1px;
+  background: rgba(255,107,53,0.12);
+}
+.arena-wolf { display:flex; flex-direction:column; align-items:center; }
+.arena-wolf-emoji {
+  font-size: 2.4em;
+  filter: drop-shadow(0 0 6px rgba(255,107,53,0.5));
+  animation: wolfBob 2s ease-in-out infinite;
+}
+.arena-wolf:nth-child(2) .arena-wolf-emoji { font-size: 3em; animation-delay: 0.3s; }
+.arena-wolf:nth-child(3) .arena-wolf-emoji { animation-delay: 0.6s; }
+@keyframes wolfBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.arena-speech {
+  font-size: 0.6em; color: var(--orange); font-weight:bold;
+  letter-spacing:1px; margin-top: 4px;
+  animation: speechPulse 1.5s infinite;
+}
+@keyframes speechPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* Big step display */
+.step-display {
+  text-align: center;
+  padding: 20px 16px 10px;
+}
+.step-count {
+  font-size: clamp(3em, 15vw, 5em);
+  font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(255,107,53,0.4);
+  transition: transform 0.1s;
+}
+.step-count.bump { transform: scale(1.04); }
+.step-meta { font-size: 0.75em; color: var(--dim); letter-spacing: 1px; margin-top: 4px; }
+
+/* Progress bar */
+.progress-wrap { padding: 0 16px 4px; }
+.progress-track {
+  height: 20px;
+  background: rgba(0,0,0,0.4);
+  border: 1.5px solid var(--border);
+  border-radius: 10px; overflow:hidden; position:relative;
+}
+.progress-fill {
+  height:100%;
+  background: linear-gradient(90deg, #ff6b35, #ffd700);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+  display:flex; align-items:center; justify-content:flex-end; padding-right: 8px;
+  font-size: 0.7em; font-weight:bold; color:#000;
+}
+.progress-goal { font-size:0.7em; color:var(--dim); text-align:right; margin-top:4px; letter-spacing:1px; }
+
+/* Streak + motivational */
+.streak-row {
+  display:flex; align-items:center; gap:10px;
+  padding: 10px 16px 0;
+}
+.streak-chip {
+  background: rgba(255,107,53,0.12); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 10px;
+  font-size: 0.72em; font-weight:bold; color: var(--orange);
+  letter-spacing:1px;
+}
+.motivational {
+  flex:1; font-size: 0.72em; color: rgba(255,107,53,0.8);
+  font-style: italic; line-height:1.4;
+}
+
+/* ── Quick-add buttons ── */
+.quick-add {
+  display: flex; gap: 8px; padding: 12px 16px;
+  flex-wrap: wrap;
+}
+.qadd-btn {
+  flex:1; min-width: 56px;
+  padding: 10px 4px;
+  background: rgba(255,107,53,0.1);
+  border: 1.5px solid rgba(255,107,53,0.3);
+  border-radius: 8px; color: var(--orange);
+  font-size: 0.8em; font-weight:bold;
+  cursor:pointer; transition: all 0.15s;
+  text-align:center;
+}
+.qadd-btn:active { background: rgba(255,107,53,0.25); transform: scale(0.96); }
+
+/* ── Manual entry row ── */
+.manual-row {
+  display:flex; gap:8px; padding: 0 16px 12px;
+}
+.manual-row input {
+  flex:1; padding: 10px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid var(--border);
+  border-radius: 8px; color:#fff; font-size:1em; outline:none;
+}
+.manual-row input:focus { border-color: var(--orange); }
+.manual-row .btn-sm { background: var(--orange); color:#000; padding: 10px 16px; }
+
+/* ── Tabs ── */
+.tabs {
+  display:flex; border-bottom: 1px solid rgba(255,107,53,0.2);
+  margin: 6px 16px 0;
+}
+.tab-btn {
+  flex:1; background:none; border:none; border-bottom: 2px solid transparent;
+  color: var(--dim); padding: 10px 4px;
+  font-size: 0.7em; font-weight:bold; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; transition: all 0.2s;
+}
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.tab-content { display:none; padding: 14px 16px; }
+.tab-content.active { display:block; }
+
+/* ── Challenges ── */
+.challenge-card {
+  display:flex; align-items:center; gap:10px;
+  background: var(--card); border: 1px solid rgba(255,107,53,0.15);
+  border-radius: 10px; padding: 11px 13px; margin-bottom: 8px;
+  position:relative; overflow:hidden;
+}
+.challenge-card.done { border-color: rgba(76,175,80,0.35); background: rgba(76,175,80,0.06); }
+.challenge-card.done::after {
+  content:'✓'; position:absolute; right:13px; top:50%;
+  transform:translateY(-50%); color: rgba(76,175,80,0.7); font-size:1.1em; font-weight:bold;
+}
+.ch-icon { font-size: 1.5em; flex-shrink:0; }
+.ch-info { flex:1; min-width:0; }
+.ch-title { font-size: 0.82em; font-weight:bold; color:rgba(255,255,255,0.85); margin-bottom:2px; }
+.challenge-card.done .ch-title { text-decoration:line-through; color:rgba(76,175,80,0.7); }
+.ch-desc  { font-size: 0.68em; color: var(--dim); }
+.ch-xp    { font-size: 0.8em; font-weight:bold; color: var(--blue); flex-shrink:0; }
+.ch-prog  {
+  position:absolute; bottom:0; left:0; height:2px;
+  background: rgba(74,144,217,0.45); border-radius:0 0 0 10px;
+  transition: width 0.8s ease;
+}
+.challenge-card.done .ch-prog { background: rgba(76,175,80,0.5); }
+
+/* ── Rivals leaderboard ── */
+.rival-row {
+  display:flex; align-items:center; gap:8px;
+  padding: 9px 11px; margin-bottom: 6px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+}
+.rival-row.you { border-color: rgba(255,107,53,0.35); background: rgba(255,107,53,0.07); }
+.rival-pos { font-size:0.9em; color: var(--dim); width:18px; text-align:right; flex-shrink:0; }
+.rival-wolf-em { font-size:1em; flex-shrink:0; }
+.rival-info { flex:1; min-width:0; }
+.rival-name { font-size:0.8em; font-weight:bold; color:rgba(255,255,255,0.8); }
+.rival-sub  { font-size:0.65em; color:var(--dim); }
+.rival-row.you .rival-name { color: var(--orange); }
+.rival-steps { font-size:0.9em; font-weight:bold; color: var(--dim); flex-shrink:0; }
+.rival-row.you .rival-steps { color: var(--orange); }
+.rival-arrow { font-size:0.7em; flex-shrink:0; }
+.rival-arrow.up   { color: var(--green); }
+.rival-arrow.down { color: #f44336; }
+
+/* ── History ── */
+.history-day {
+  background: rgba(255,107,53,0.07); border-left: 3px solid var(--orange);
+  border-radius: 5px; padding: 10px 12px; margin-bottom: 8px;
+}
+.history-day .hd-date { font-size:0.7em; color: var(--gold); letter-spacing:1px; margin-bottom:4px; }
+.history-day .hd-steps { font-size:1.1em; font-weight:bold; color: var(--orange); }
+
+/* ── Sensor settings ── */
+.slider-row { display:flex; align-items:center; gap:10px; margin-top:12px; }
+.slider-row label { font-size:0.72em; color:var(--dim); white-space:nowrap; min-width:80px; }
+input[type=range] { flex:1; accent-color: var(--orange); }
+.slider-val { font-size:0.72em; color: var(--orange); min-width:30px; text-align:right; }
+
+/* ── Bottom nav ── */
+.bottom-nav {
+  position: fixed; bottom:0; left:0; right:0;
+  background: rgba(10,10,22,0.97);
+  border-top: 1px solid rgba(255,107,53,0.2);
+  display:flex;
+  z-index: 30;
+}
+.nav-btn {
+  flex:1; padding:12px 4px 8px;
+  background:none; border:none; cursor:pointer;
+  color: var(--dim); font-size:0.6em; letter-spacing:1px; text-transform:uppercase;
+  transition: color 0.2s;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+}
+.nav-btn .nav-icon { font-size: 1.6em; }
+.nav-btn.active { color: var(--orange); }
+
+/* ── XP toast ── */
+.xp-toast {
+  position:fixed; top:70px; right:14px; z-index:100;
+  background: rgba(74,144,217,0.15); border:1px solid rgba(74,144,217,0.5);
+  border-radius:6px; padding:6px 12px;
+  font-size:0.9em; font-weight:bold; color: var(--blue);
+  pointer-events:none; opacity:0; transform:translateY(0);
+  transition: opacity 0.3s, transform 0.5s;
+}
+.xp-toast.show { opacity:1; transform:translateY(-6px); }
+
+/* ── Pack / Share tab ── */
+.share-card {
+  background: rgba(255,107,53,0.08);
+  border: 2px solid var(--border);
+  border-radius: 12px; padding: 18px;
+  margin-bottom: 14px; text-align: center;
+}
+.share-card h3 { font-size: 0.85em; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.share-card p  { font-size: 0.72em; color: var(--dim); line-height: 1.5; margin-bottom: 12px; }
+.share-link-box {
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,107,53,0.25);
+  border-radius: 7px; padding: 10px 12px;
+  font-size: 0.65em; color: var(--orange);
+  word-break: break-all; margin-bottom: 10px;
+  font-family: monospace; line-height: 1.5; text-align: left;
+  max-height: 70px; overflow-y: auto;
+}
+.copy-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg,#ff6b35,#ffa040);
+  border: none; border-radius: 8px;
+  color: #fff; font-weight: bold; font-size: 0.85em;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+.copy-btn:active { transform: scale(0.97); }
+.copy-btn.copied { background: linear-gradient(135deg,#4caf50,#66bb6a); }
+
+.pack-member {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; margin-bottom: 6px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  position: relative;
+}
+.pack-member.you { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.08); }
+.pack-member.real { border-color: rgba(76,175,80,0.3); }
+.pm-pos   { font-size: 0.85em; color: var(--dim); width: 18px; text-align: right; flex-shrink:0; }
+.pm-emoji { font-size: 1.1em; flex-shrink:0; }
+.pm-info  { flex:1; min-width:0; }
+.pm-name  { font-size: 0.82em; font-weight: bold; color: rgba(255,255,255,0.85); }
+.pm-meta  { font-size: 0.65em; color: var(--dim); }
+.pack-member.you .pm-name { color: var(--orange); }
+.pack-member.real .pm-name { color: #81c784; }
+.pm-steps { font-size: 0.88em; font-weight: bold; color: var(--dim); flex-shrink:0; }
+.pack-member.you .pm-steps { color: var(--orange); }
+.pack-member.real .pm-steps { color: #81c784; }
+.pm-badge {
+  font-size: 0.55em; letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 3px; flex-shrink:0;
+}
+.pm-badge.real-badge { background: rgba(76,175,80,0.2); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+.pm-badge.ai-badge   { background: rgba(255,255,255,0.06); color: var(--dim); border: 1px solid rgba(255,255,255,0.1); }
+.pm-remove {
+  position: absolute; right: 8px; top: 8px;
+  background: none; border: none; color: rgba(244,67,54,0.4);
+  font-size: 0.75em; cursor: pointer; padding: 2px 5px;
+  border-radius: 3px; transition: color 0.2s;
+}
+.pm-remove:hover { color: #f44336; }
+
+.import-box {
+  background: rgba(76,175,80,0.06);
+  border: 1.5px dashed rgba(76,175,80,0.35);
+  border-radius: 10px; padding: 14px;
+  margin-bottom: 14px;
+}
+.import-box h3 { font-size: 0.78em; color: #81c784; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.import-row { display: flex; gap: 8px; }
+.import-row input {
+  flex:1; padding: 9px 12px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(76,175,80,0.3);
+  border-radius: 7px; color: #fff; font-size: 0.8em; outline: none;
+}
+.import-row input:focus { border-color: #4caf50; }
+.import-row button {
+  padding: 9px 14px; background: rgba(76,175,80,0.2);
+  border: 1px solid rgba(76,175,80,0.4); border-radius: 7px;
+  color: #81c784; font-size: 0.78em; font-weight: bold;
+  cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+}
+.import-row button:hover { background: rgba(76,175,80,0.3); }
+
+.import-status {
+  font-size: 0.72em; margin-top: 6px; min-height: 16px;
+  color: var(--dim);
+}
+.import-status.ok  { color: #81c784; }
+.import-status.err { color: #f44336; }
+
+.ai-note {
+  font-size: 0.68em; color: rgba(255,255,255,0.2);
+  text-align: center; margin-top: 10px; font-style: italic;
+}
+
+/* ── Step flash ── */
+@keyframes stepFlash {
+  0%   { background:rgba(255,107,53,0.18); }
+  100% { background:transparent; }
+}
+.step-flash { animation: stepFlash 0.25s ease-out; }
+
+/* ── Misc ── */
+.section-label {
+  font-size:0.68em; text-transform:uppercase; letter-spacing:1.5px;
+  color:rgba(255,255,255,0.22); margin-bottom:10px;
+}
+.info-note {
+  font-size:0.72em; color:var(--dim); line-height:1.6; margin-bottom:12px;
+  background: rgba(255,107,53,0.07); border-left:3px solid var(--orange);
+  padding:10px 12px; border-radius:4px;
+}
+.reset-btn {
+  background:none; border:1px solid rgba(244,67,54,0.3); border-radius:6px;
+  color:rgba(244,67,54,0.6); font-size:0.72em; padding:7px 14px;
+  cursor:pointer; transition:all 0.2s; width:100%; margin-top:14px;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.reset-btn:hover { background:rgba(244,67,54,0.1); border-color:rgba(244,67,54,0.6); color:#f44336; }
+
+@media (max-width:360px) {
+  .step-count { font-size: 3em; }
+  .wolf-arena { height: 90px; }
+  .arena-wolf-emoji { font-size: 2em !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ XP Toast ══ -->
+<div class="xp-toast" id="xp-toast">+0 XP</div>
+
+<!-- ══════════════════════ SETUP SCREEN ══════════════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-box">
+    <div class="logo">
+      <span class="wolf-big">🐺</span>
+      <h1>WOLVEPACK</h1>
+      <p>Run With Your Pack. Hunt With Purpose.</p>
+    </div>
+
+    <label class="field-label">Choose Your Wolf Name</label>
+    <input class="text-input" id="username-input" type="text" maxlength="20"
+      placeholder="Enter your wolf name" autocomplete="off">
+
+    <div class="sensor-box">
+      <p>🐺 The pack needs permission to sense your movement via your device's motion sensor. No account needed — everything stays on this device.</p>
+      <button class="btn btn-ghost" onclick="requestMotionPermission()" id="permission-btn">🔓 ENABLE MOTION SENSOR</button>
+      <div class="sensor-status" id="sensor-status">Tap above to enable step tracking</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startPack()">🐺 ENTER THE PACK</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ MAIN SCREEN ══════════════════════ -->
+<div id="main-screen" class="screen">
+
+  <!-- Sticky header -->
+  <div class="app-header">
+    <div class="app-header-left">
+      <h2>🐺 WOLVEPACK</h2>
+      <p id="username-display">WOLF</p>
+    </div>
+    <div style="text-align:right">
+      <div><span class="sensor-dot" id="sensor-dot"></span><span class="sensor-label" id="sensor-label">sensor off</span></div>
+      <div style="font-size:0.65em;color:var(--dim);margin-top:2px" id="last-step-time"></div>
+    </div>
+  </div>
+
+  <!-- Rank strip -->
+  <div class="rank-strip">
+    <div class="rank-badge" id="rank-badge">OMEGA</div>
+    <div class="xp-bar-outer"><div class="xp-bar-inner" id="xp-bar" style="width:0%"></div></div>
+    <div class="xp-label" id="xp-label">0 XP</div>
+  </div>
+
+  <!-- Wolf arena -->
+  <div class="wolf-arena" id="wolf-arena">
+    <div class="arena-wolf"><div class="arena-wolf-emoji">🐺</div><div class="arena-speech" id="wolf1">HUNT!</div></div>
+    <div class="arena-wolf"><div class="arena-wolf-emoji">🐺</div><div class="arena-speech" id="wolf2">PUSH!</div></div>
+    <div class="arena-wolf"><div class="arena-wolf-emoji">🐺</div><div class="arena-speech" id="wolf3">MOVE!</div></div>
+  </div>
+
+  <!-- Big step count -->
+  <div class="step-display">
+    <div class="step-count" id="step-count">0</div>
+    <div class="step-meta" id="step-meta">steps today · goal: 10,000</div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-goal" id="progress-goal">0 / 10,000</div>
+  </div>
+
+  <!-- Streak + motivational -->
+  <div class="streak-row">
+    <div class="streak-chip" id="streak-chip">🔥 0 day streak</div>
+    <div class="motivational" id="motivational">The hunt begins. Take the first step!</div>
+  </div>
+
+  <!-- Quick add -->
+  <div class="quick-add">
+    <button class="qadd-btn" onclick="quickAdd(100)">+100</button>
+    <button class="qadd-btn" onclick="quickAdd(500)">+500</button>
+    <button class="qadd-btn" onclick="quickAdd(1000)">+1k</button>
+    <button class="qadd-btn" onclick="quickAdd(2000)">+2k</button>
+    <button class="qadd-btn" onclick="quickAdd(5000)">+5k</button>
+  </div>
+
+  <!-- Manual entry -->
+  <div class="manual-row">
+    <input type="number" id="manual-input" placeholder="Type exact steps..." min="0" max="99999">
+    <button class="btn-sm" onclick="manualSet()">SET</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-challenges',this)">⚡ Challenges</button>
+    <button class="tab-btn" onclick="switchTab('tab-pack',this)">🐺 Pack</button>
+    <button class="tab-btn" onclick="switchTab('tab-history',this)">📊 History</button>
+    <button class="tab-btn" onclick="switchTab('tab-sensor',this)">⚙️ Sensor</button>
+  </div>
+
+  <!-- Challenges tab -->
+  <div id="tab-challenges" class="tab-content active">
+    <div class="section-label">Daily Challenges</div>
+    <div id="challenges-list"></div>
+  </div>
+
+  <!-- Pack tab -->
+  <div id="tab-pack" class="tab-content">
+
+    <!-- Share card -->
+    <div class="share-card">
+      <h3>📤 Share Your Steps</h3>
+      <p>Send this link to your pack. When they open it, your steps are added to their leaderboard automatically.</p>
+      <div class="share-link-box" id="share-link-box">Tap Generate to create your link</div>
+      <button class="copy-btn" id="copy-btn" onclick="generateAndCopy()">🔗 GENERATE &amp; COPY LINK</button>
+    </div>
+
+    <!-- Import card -->
+    <div class="import-box">
+      <h3>📥 Add a Pack Member</h3>
+      <div class="import-row">
+        <input type="url" id="import-input" placeholder="Paste their link here...">
+        <button onclick="importFromLink()">ADD</button>
+      </div>
+      <div class="import-status" id="import-status"></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-label">Pack Leaderboard</div>
+    <div id="pack-list"></div>
+    <div class="ai-note" id="ai-note"></div>
+  </div>
+
+  <!-- History tab -->
+  <div id="tab-history" class="tab-content">
+    <div class="section-label">Step History</div>
+    <div id="history-list"></div>
+    <button class="reset-btn" onclick="resetAll()">🔄 Reset All Data</button>
+  </div>
+
+  <!-- Sensor tab -->
+  <div id="tab-sensor" class="tab-content">
+    <div class="section-label">Motion Sensor Settings</div>
+    <div class="info-note">
+      The step detector uses your device's accelerometer. It watches for the rise-and-fall pattern of a walking stride. Fine-tune sensitivity if it's over- or under-counting.
+    </div>
+
+    <div class="slider-row">
+      <label>Sensitivity</label>
+      <input type="range" id="sensitivity-slider" min="1" max="10" value="5" oninput="updateSensitivity(this.value)">
+      <span class="slider-val" id="sensitivity-val">5</span>
+    </div>
+    <div style="font-size:0.68em;color:var(--dim);margin-top:6px">
+      Low = fewer false steps (use if over-counting). High = catches light steps (use if under-counting).
+    </div>
+
+    <div class="slider-row" style="margin-top:16px">
+      <label>Daily Goal</label>
+      <input type="range" id="goal-slider" min="2000" max="20000" step="500" value="10000" oninput="updateGoal(this.value)">
+      <span class="slider-val" id="goal-val">10k</span>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="section-label">Live Sensor Readings</div>
+      <div style="font-size:0.75em;color:var(--dim)" id="sensor-debug">—</div>
+    </div>
+
+    <button class="btn btn-ghost" style="margin-top:14px" onclick="retryMotion()">🔄 Restart Motion Sensor</button>
+  </div>
+
+  <!-- Bottom spacer for nav -->
+  <div style="height:60px"></div>
+</div>
+
+<!-- ══ Bottom nav ══ -->
+<div class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn active" id="nav-home" onclick="scrollToTop()">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-btn" onclick="switchTab('tab-challenges', null, 'nav-challenges')" id="nav-challenges">
+    <span class="nav-icon">⚡</span>Challenges
+  </button>
+  <button class="nav-btn" onclick="switchTab('tab-pack', null, 'nav-pack'); renderPackTab();" id="nav-pack">
+    <span class="nav-icon">🐺</span>Pack
+  </button>
+  <button class="nav-btn" onclick="switchTab('tab-history', null, 'nav-history')" id="nav-history">
+    <span class="nav-icon">📊</span>History
+  </button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const WOLF_MESSAGES = [
+  ['HUNT!','PUSH!','MOVE!'],
+  ['FASTER!','BREATHE!','GO!'],
+  ['STRONG!','FIERCE!','ROAR!'],
+  ['GLORY!','POWER!','APEX!'],
+  ['LEGEND!','ALPHA!','KING!'],
+];
+
+const MOTIV = [
+  "The pack sees your fire!",
+  "You're becoming unstoppable!",
+  "Lightning in your legs!",
+  "This is what legends do!",
+  "Even the moon howls for you!",
+  "Destiny bows to your will!",
+  "You ARE the alpha!",
+  "The pack tells stories about YOU!",
+  "Together we are UNSTOPPABLE!",
+  "Every step is a victory!",
+];
+
+const RANKS = [
+  { name:'Omega',  label:'Pup',        minXP:0,    color:'#5a5040' },
+  { name:'Beta',   label:'Runner',     minXP:200,  color:'#7a6850' },
+  { name:'Hunter', label:'Hunter',     minXP:500,  color:'#b88030' },
+  { name:'Alpha',  label:'Alpha Wolf', minXP:1000, color:'#d4830a' },
+  { name:'Legend', label:'Legend',     minXP:2000, color:'#c8401a' },
+];
+
+const RIVALS = [
+  { name:'Ghost',  emoji:'🐺', rank:'Legend', mult:1.00 },
+  { name:'Fang',   emoji:'🐺', rank:'Alpha',  mult:0.88 },
+  { name:'Ash',    emoji:'🐺', rank:'Hunter', mult:0.72 },
+  { name:'Rook',   emoji:'🐺', rank:'Beta',   mult:0.58 },
+  { name:'Pebble', emoji:'🐾', rank:'Omega',  mult:0.40 },
+];
+
+const CHALLENGES = [
+  { id:'half',   icon:'⚡', title:'Halfway There',      desc:'Reach 50% of your daily goal',       xp:50,  type:'pct', val:0.50 },
+  { id:'sev',    icon:'🔥', title:'Seventy Percent',    desc:'Hit 70% of your goal today',          xp:80,  type:'pct', val:0.70 },
+  { id:'goal',   icon:'👑', title:'Goal Crusher',       desc:'Hit your full daily step goal',       xp:150, type:'pct', val:1.00 },
+  { id:'2k',     icon:'🐾', title:'2,000 Steps',        desc:'Log at least 2,000 steps',            xp:20,  type:'abs', val:2000 },
+  { id:'5k',     icon:'🏃', title:'5,000 Steps',        desc:'Log at least 5,000 steps',            xp:45,  type:'abs', val:5000 },
+  { id:'8k',     icon:'🌕', title:'8,000 Steps',        desc:'Hit 8,000 steps today',               xp:70,  type:'abs', val:8000 },
+  { id:'10k',    icon:'🏆', title:'10,000 Steps',       desc:'Hit the classic 10k mark',            xp:100, type:'abs', val:10000 },
+  { id:'streak', icon:'🔗', title:'Keep the Chain',     desc:'Maintain your daily streak',          xp:40,  type:'streak', val:1 },
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let gs = loadGS(); // game state
+let sensitivity = parseFloat(localStorage.getItem('wolf_sensitivity') || '5');
+let goal = parseInt(localStorage.getItem('wolf_goal') || '10000');
+let motionActive = false;
+let lastStepTime = 0;
+let uiInterval = null;
+
+// ── Peak detection state ──
+let lastMag = 0;
+let rising  = false;
+let peakMag = 0;
+let STEP_THRESHOLD = sensitivityToThreshold(sensitivity);
+let COOLDOWN_MS    = sensitivityToCooldown(sensitivity);
+let debugMag = 0;
+
+function sensitivityToThreshold(s) {
+  // s: 1–10 → threshold: 4.5 (low sens/high threshold) down to 1.0 (high sens/low threshold)
+  return 4.5 - (s - 1) * (3.5 / 9);
+}
+function sensitivityToCooldown(s) {
+  // s: 1–10 → cooldown: 450ms down to 200ms
+  return 450 - (s - 1) * (250 / 9);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME STATE PERSISTENCE
+// ═══════════════════════════════════════════════════════════════
+function loadGS() {
+  try { return JSON.parse(localStorage.getItem('wolf_gs') || '{}'); }
+  catch { return {}; }
+}
+function saveGS() {
+  localStorage.setItem('wolf_gs', JSON.stringify(gs));
+}
+
+function todayKey() { return new Date().toISOString().slice(0,10); }
+
+function ensureToday() {
+  const today = todayKey();
+  if (gs.lastDate !== today) {
+    // Archive yesterday
+    if (gs.lastDate && gs.todaySteps > 0) {
+      if (!gs.history) gs.history = {};
+      gs.history[gs.lastDate] = gs.todaySteps;
+    }
+    gs.todaySteps = 0;
+    gs.lastDate   = today;
+    gs.awardedToday = {};
+
+    // Streak
+    const yd = new Date(); yd.setDate(yd.getDate()-1);
+    const ydKey = yd.toISOString().slice(0,10);
+    if (gs.lastActiveDate === ydKey) {
+      gs.streak = (gs.streak || 0) + 1;
+    } else if (gs.lastActiveDate !== today) {
+      gs.streak = 0;
+    }
+    saveGS();
+  }
+  if (!gs.xp)     gs.xp     = 0;
+  if (!gs.streak) gs.streak = 0;
+  if (!gs.history) gs.history = {};
+  if (!gs.awardedToday) gs.awardedToday = {};
+  if (!gs.todaySteps) gs.todaySteps = 0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MOTION / PEDOMETRY
+// ═══════════════════════════════════════════════════════════════
+async function requestMotionPermission() {
+  const statusEl = document.getElementById('sensor-status');
+  const btn      = document.getElementById('permission-btn');
+
+  // iOS 13+ requires explicit permission request
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const result = await DeviceMotionEvent.requestPermission();
+      if (result === 'granted') {
+        statusEl.textContent = '✅ Motion permission granted!';
+        statusEl.className = 'sensor-status ok';
+        btn.textContent = '✅ PERMISSION GRANTED';
+        startMotionTracking();
+        localStorage.setItem('wolf_motion_perm', '1');
+      } else {
+        statusEl.textContent = '❌ Permission denied. Use quick-add buttons below.';
+        statusEl.className = 'sensor-status err';
+      }
+    } catch(e) {
+      statusEl.textContent = '❌ Could not request permission: ' + e.message;
+      statusEl.className = 'sensor-status err';
+    }
+  } else if (typeof DeviceMotionEvent !== 'undefined') {
+    // Android / Samsung Internet — no explicit permission needed
+    statusEl.textContent = '✅ Motion sensor ready!';
+    statusEl.className = 'sensor-status ok';
+    btn.textContent = '✅ SENSOR ACTIVE';
+    startMotionTracking();
+    localStorage.setItem('wolf_motion_perm', '1');
+  } else {
+    statusEl.textContent = '❌ Motion sensor not available on this device.';
+    statusEl.className = 'sensor-status err';
+  }
+}
+
+function startMotionTracking() {
+  if (motionActive) return;
+
+  window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+  motionActive = true;
+
+  const dot   = document.getElementById('sensor-dot');
+  const label = document.getElementById('sensor-label');
+  if (dot)   dot.classList.add('active');
+  if (label) label.textContent = 'sensor active';
+}
+
+function stopMotionTracking() {
+  window.removeEventListener('devicemotion', onDeviceMotion);
+  motionActive = false;
+  const dot   = document.getElementById('sensor-dot');
+  const label = document.getElementById('sensor-label');
+  if (dot)   dot.classList.remove('active');
+  if (label) label.textContent = 'sensor off';
+}
+
+function retryMotion() {
+  stopMotionTracking();
+  requestMotionPermission();
+}
+
+function onDeviceMotion(e) {
+  const acc = e.accelerationIncludingGravity;
+  if (!acc) return;
+
+  const x = acc.x || 0, y = acc.y || 0, z = acc.z || 0;
+  // Remove gravity (≈9.8) from magnitude for a cleaner signal
+  const raw = Math.sqrt(x*x + y*y + z*z);
+  const mag = Math.abs(raw - 9.81);
+  debugMag = mag;
+
+  // Update live debug
+  const dbg = document.getElementById('sensor-debug');
+  if (dbg) dbg.textContent = `mag: ${mag.toFixed(2)} | threshold: ${STEP_THRESHOLD.toFixed(2)} | cooldown: ${Math.round(COOLDOWN_MS)}ms`;
+
+  // Peak detection — step when magnitude rises above threshold then falls
+  if (mag > STEP_THRESHOLD) {
+    rising = true;
+    if (mag > peakMag) peakMag = mag;
+  } else if (rising && mag < STEP_THRESHOLD * 0.5) {
+    // Falling edge — confirmed step if cooldown elapsed
+    rising = false;
+    const now = Date.now();
+    if (now - lastStepTime > COOLDOWN_MS) {
+      lastStepTime = now;
+      peakMag = 0;
+      countStep();
+    }
+    peakMag = 0;
+  }
+
+  lastMag = mag;
+}
+
+function countStep() {
+  ensureToday();
+  gs.todaySteps = (gs.todaySteps || 0) + 1;
+  gs.lastActiveDate = todayKey();
+  saveGS();
+
+  // Update last step time display
+  const el = document.getElementById('last-step-time');
+  if (el) el.textContent = 'last step: just now';
+  lastStepTime = Date.now();
+
+  // Visual bump
+  const sc = document.getElementById('step-count');
+  if (sc) {
+    sc.classList.add('bump');
+    setTimeout(() => sc.classList.remove('bump'), 100);
+  }
+
+  updateUI();
+  checkChallenges();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MANUAL / QUICK ADD
+// ═══════════════════════════════════════════════════════════════
+function quickAdd(n) {
+  ensureToday();
+  gs.todaySteps = (gs.todaySteps || 0) + n;
+  gs.lastActiveDate = todayKey();
+
+  // Auto-update streak when manually adding
+  const today = todayKey();
+  const yd = new Date(); yd.setDate(yd.getDate()-1);
+  const ydK = yd.toISOString().slice(0,10);
+  if (gs.lastActiveDate !== today) {
+    if (gs.lastActiveDate === ydK) gs.streak = (gs.streak||0)+1;
+    gs.lastActiveDate = today;
+  }
+  saveGS(); updateUI(); checkChallenges();
+
+  // Flash
+  document.getElementById('wolf-arena').classList.add('step-flash');
+  setTimeout(() => document.getElementById('wolf-arena').classList.remove('step-flash'), 250);
+}
+
+function manualSet() {
+  const inp = document.getElementById('manual-input');
+  const val = parseInt(inp.value);
+  if (isNaN(val) || val < 0) { inp.focus(); return; }
+  ensureToday();
+  gs.todaySteps = val;
+  gs.lastActiveDate = todayKey();
+  if (!gs.history) gs.history = {};
+  // Auto-record in history
+  gs.history[todayKey()] = val;
+  saveGS(); updateUI(); checkChallenges();
+  inp.value = '';
+  const btn = document.querySelector('.manual-row .btn-sm');
+  const orig = btn.textContent;
+  btn.textContent = val > (goal * 0.95) ? '🏆' : '✓';
+  setTimeout(() => btn.textContent = orig, 1400);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI RENDER
+// ═══════════════════════════════════════════════════════════════
+function updateUI() {
+  ensureToday();
+  const steps = gs.todaySteps || 0;
+  const pct   = Math.min(steps / goal, 1);
+
+  // Step count
+  const sc = document.getElementById('step-count');
+  if (sc) sc.textContent = steps.toLocaleString();
+
+  // Progress
+  const pf = document.getElementById('progress-fill');
+  if (pf) {
+    pf.style.width = (pct * 100) + '%';
+    pf.textContent = pct >= 0.08 ? Math.round(pct * 100) + '%' : '';
+  }
+  const pg = document.getElementById('progress-goal');
+  if (pg) pg.textContent = steps.toLocaleString() + ' / ' + goal.toLocaleString();
+
+  // Rank & XP
+  const xp   = gs.xp || 0;
+  const rank = getRank(xp);
+  const xpPct = getXpPct(xp);
+  const badge = document.getElementById('rank-badge');
+  if (badge) {
+    badge.textContent = rank.name.toUpperCase();
+    badge.style.color        = rank.color;
+    badge.style.borderColor  = rank.color;
+  }
+  const xpBar = document.getElementById('xp-bar');
+  if (xpBar) xpBar.style.width = xpPct + '%';
+  const xpLbl = document.getElementById('xp-label');
+  if (xpLbl) xpLbl.textContent = xp.toLocaleString() + ' XP';
+
+  // Streak
+  const sc2 = document.getElementById('streak-chip');
+  if (sc2) sc2.textContent = '🔥 ' + (gs.streak || 0) + ' day streak';
+
+  // Wolf messages
+  const tier = steps < 2000 ? 0 : steps < 5000 ? 1 : steps < 8000 ? 2 : steps < goal ? 3 : 4;
+  const msgs = WOLF_MESSAGES[tier];
+  ['wolf1','wolf2','wolf3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msgs[i];
+  });
+
+  // Motivational
+  const mot = document.getElementById('motivational');
+  if (mot) mot.textContent = MOTIV[Math.floor(Date.now() / 5000) % MOTIV.length];
+
+  // Last step time
+  const lst = document.getElementById('last-step-time');
+  if (lst && lastStepTime > 0) {
+    const secs = Math.round((Date.now() - lastStepTime) / 1000);
+    lst.textContent = secs < 60 ? `last step: ${secs}s ago` : `last step: ${Math.round(secs/60)}m ago`;
+  }
+
+  // Challenges
+  renderChallenges();
+}
+
+// ── Rank helpers ──
+function getRank(xp) {
+  let r = RANKS[0];
+  for (const rk of RANKS) { if (xp >= rk.minXP) r = rk; }
+  return r;
+}
+function getXpPct(xp) {
+  const r = getRank(xp);
+  const next = RANKS.find(x => x.minXP > r.minXP) || r;
+  if (next === r) return 100;
+  return Math.round(((xp - r.minXP) / (next.minXP - r.minXP)) * 100);
+}
+
+// ── Challenges ──
+function getDailyChallenges() {
+  const seed = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  return [...CHALLENGES].sort((a,b) => simpleHash(a.id+seed) - simpleHash(b.id+seed)).slice(0,3);
+}
+function simpleHash(s) {
+  let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))&0xffffffff; return h>>>0;
+}
+function chDone(ch) {
+  const steps = gs.todaySteps || 0;
+  if (ch.type==='pct')    return steps >= goal * ch.val;
+  if (ch.type==='abs')    return steps >= ch.val;
+  if (ch.type==='streak') return (gs.streak||0) >= ch.val;
+  return false;
+}
+function chProg(ch) {
+  const steps = gs.todaySteps || 0;
+  if (ch.type==='pct') return Math.min(steps / (goal * ch.val), 1);
+  if (ch.type==='abs') return Math.min(steps / ch.val, 1);
+  return 0;
+}
+
+function checkChallenges() {
+  const today = todayKey();
+  const daily = getDailyChallenges();
+  let gained = 0;
+  daily.forEach(ch => {
+    const key = today + ':' + ch.id;
+    if (chDone(ch) && !gs.awardedToday[key]) {
+      gs.awardedToday[key] = true;
+      gs.xp = (gs.xp || 0) + ch.xp;
+      gained += ch.xp;
+    }
+  });
+  if (gained > 0) { saveGS(); showXpToast(gained); }
+}
+
+function renderChallenges() {
+  const list  = document.getElementById('challenges-list');
+  if (!list) return;
+  const today = todayKey();
+  const daily = getDailyChallenges();
+  list.innerHTML = '';
+  daily.forEach(ch => {
+    const key  = today + ':' + ch.id;
+    const done = gs.awardedToday && gs.awardedToday[key];
+    const prog = chProg(ch);
+    const d    = document.createElement('div');
+    d.className = 'challenge-card' + (done ? ' done' : '');
+    d.innerHTML = `
+      <div class="ch-icon">${ch.icon}</div>
+      <div class="ch-info">
+        <div class="ch-title">${ch.title}</div>
+        <div class="ch-desc">${ch.desc}</div>
+      </div>
+      <div class="ch-xp">+${ch.xp}</div>
+      <div class="ch-prog" style="width:${prog*100}%"></div>`;
+    list.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PACK SHARING
+// ═══════════════════════════════════════════════════════════════
+
+// AI placeholder wolves (shown when pack has < 3 real members)
+const AI_WOLVES = [
+  { name:'Ghost',  emoji:'🐺', rank:'Legend', mult:1.00 },
+  { name:'Fang',   emoji:'🐺', rank:'Alpha',  mult:0.88 },
+  { name:'Ash',    emoji:'🐺', rank:'Hunter', mult:0.72 },
+  { name:'Rook',   emoji:'🐺', rank:'Beta',   mult:0.58 },
+];
+
+function getPackMembers() {
+  try { return JSON.parse(localStorage.getItem('wolf_pack') || '[]'); }
+  catch { return []; }
+}
+function savePackMembers(members) {
+  localStorage.setItem('wolf_pack', JSON.stringify(members));
+}
+
+// Build the share URL encoding your current state
+function buildShareLink() {
+  const base   = location.href.split('?')[0].split('#')[0];
+  const today  = todayKey();
+  const steps  = gs.todaySteps || 0;
+  const name   = gs.username   || 'Wolf';
+  const xp     = gs.xp        || 0;
+  const streak = gs.streak     || 0;
+  const params = new URLSearchParams({
+    wp: '1',          // wolvepack flag
+    n:  name,
+    s:  steps,
+    d:  today,
+    x:  xp,
+    st: streak,
+  });
+  return base + '?' + params.toString();
+}
+
+function generateAndCopy() {
+  const link = buildShareLink();
+  const box  = document.getElementById('share-link-box');
+  const btn  = document.getElementById('copy-btn');
+  box.textContent = link;
+
+  // Copy to clipboard
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(() => {
+      btn.textContent = '✅ COPIED!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '🔗 GENERATE & COPY LINK';
+        btn.classList.remove('copied');
+      }, 2500);
+    });
+  } else {
+    // Fallback for Samsung Internet / older browsers
+    const ta = document.createElement('textarea');
+    ta.value = link;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, 99999);
+    try {
+      document.execCommand('copy');
+      btn.textContent = '✅ COPIED!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '🔗 GENERATE & COPY LINK';
+        btn.classList.remove('copied');
+      }, 2500);
+    } catch(e) {
+      btn.textContent = '⚠️ COPY MANUALLY';
+    }
+    document.body.removeChild(ta);
+  }
+}
+
+// Import from a pasted link
+function importFromLink() {
+  const raw    = document.getElementById('import-input').value.trim();
+  const status = document.getElementById('import-status');
+  if (!raw) { status.textContent = 'Paste a link first.'; status.className='import-status err'; return; }
+
+  try {
+    const url    = new URL(raw);
+    const params = new URLSearchParams(url.search);
+    if (!params.get('wp')) throw new Error('Not a WolvePack link');
+
+    const name   = params.get('n')  || 'Unknown';
+    const steps  = parseInt(params.get('s')  || '0');
+    const date   = params.get('d')  || todayKey();
+    const xp     = parseInt(params.get('x')  || '0');
+    const streak = parseInt(params.get('st') || '0');
+
+    if (!name || isNaN(steps)) throw new Error('Invalid data');
+
+    const members = getPackMembers();
+    // Update if already exists, otherwise add
+    const idx = members.findIndex(m => m.name.toLowerCase() === name.toLowerCase());
+    const entry = { name, steps, date, xp, streak, addedAt: Date.now() };
+    if (idx >= 0) {
+      members[idx] = entry;
+      status.textContent = `✅ Updated ${name}'s steps!`;
+    } else {
+      members.push(entry);
+      status.textContent = `✅ ${name} joined the pack!`;
+    }
+    status.className = 'import-status ok';
+    savePackMembers(members);
+    document.getElementById('import-input').value = '';
+    renderPackTab();
+    setTimeout(() => { status.textContent=''; status.className='import-status'; }, 3000);
+  } catch(e) {
+    status.textContent = '❌ Invalid link. Ask them to share again.';
+    status.className = 'import-status err';
+  }
+}
+
+function removeMember(name) {
+  const members = getPackMembers().filter(m => m.name !== name);
+  savePackMembers(members);
+  renderPackTab();
+}
+
+// Check URL on load for incoming pack data
+function checkIncomingLink() {
+  const params = new URLSearchParams(location.search);
+  if (!params.get('wp')) return;
+
+  const name   = params.get('n')  || 'Unknown';
+  const steps  = parseInt(params.get('s')  || '0');
+  const date   = params.get('d')  || todayKey();
+  const xp     = parseInt(params.get('x')  || '0');
+  const streak = parseInt(params.get('st') || '0');
+
+  // Clean URL so it doesn't re-import on refresh
+  history.replaceState({}, '', location.pathname);
+
+  if (!name || isNaN(steps)) return;
+
+  // Only import if it's not ourselves
+  if (gs.username && name.toLowerCase() === gs.username.toLowerCase()) return;
+
+  const members = getPackMembers();
+  const idx = members.findIndex(m => m.name.toLowerCase() === name.toLowerCase());
+  const entry = { name, steps, date, xp, streak, addedAt: Date.now() };
+  if (idx >= 0) members[idx] = entry;
+  else members.push(entry);
+  savePackMembers(members);
+
+  // Show a banner after entering the app
+  setTimeout(() => {
+    showImportBanner(name, steps);
+  }, 800);
+}
+
+function showImportBanner(name, steps) {
+  const t = document.getElementById('xp-toast');
+  t.textContent = `🐺 ${name} joined! (${steps.toLocaleString()} steps)`;
+  t.style.background = 'rgba(76,175,80,0.15)';
+  t.style.borderColor = 'rgba(76,175,80,0.5)';
+  t.style.color = '#81c784';
+  t.classList.add('show');
+  setTimeout(() => {
+    t.classList.remove('show');
+    t.style.background = '';
+    t.style.borderColor = '';
+    t.style.color = '';
+  }, 3500);
+}
+
+// Render the full pack leaderboard
+function renderPackTab() {
+  const list    = document.getElementById('pack-list');
+  const aiNote  = document.getElementById('ai-note');
+  if (!list) return;
+
+  const mySteps   = gs.todaySteps || 0;
+  const myXp      = gs.xp || 0;
+  const myRank    = getRank(myXp).name;
+  const members   = getPackMembers();
+  const today     = todayKey();
+
+  // Real entries
+  const realEntries = members.map(m => ({
+    name:   m.name,
+    emoji:  '🐺',
+    steps:  m.date === today ? m.steps : 0, // 0 if they haven't shared today
+    rank:   getRank(m.xp || 0).name,
+    streak: m.streak || 0,
+    stale:  m.date !== today,
+    isReal: true,
+    isYou:  false,
+  }));
+
+  // You
+  const youEntry = {
+    name: gs.username || 'You', emoji:'🐺',
+    steps: mySteps, rank: myRank,
+    streak: gs.streak || 0,
+    isReal: true, isYou: true, stale: false,
+  };
+
+  // Combine real members + you
+  let allReal = [...realEntries, youEntry];
+  allReal.sort((a,b) => b.steps - a.steps);
+
+  // Pad with AI wolves if fewer than 4 real members
+  const realCount = allReal.length;
+  const aiEntries = [];
+  if (realCount < 4) {
+    const allTimeMax = Math.max(
+      ...Object.values(gs.history || {}), mySteps, 5000
+    );
+    AI_WOLVES.slice(0, 4 - realCount).forEach(w => {
+      aiEntries.push({
+        name: w.name, emoji: w.emoji,
+        steps: Math.round(allTimeMax * w.mult),
+        rank: w.rank, isReal: false, isYou: false, stale: false,
+      });
+    });
+  }
+
+  const combined = [...allReal, ...aiEntries];
+  combined.sort((a,b) => b.steps - a.steps);
+
+  list.innerHTML = '';
+  combined.forEach((e, i) => {
+    const row = document.createElement('div');
+    row.className = `pack-member${e.isYou ? ' you' : e.isReal ? ' real' : ''}`;
+
+    const staleNote = e.stale ? ' · shared yesterday' : '';
+    const streakStr = e.streak > 0 ? ` · 🔥${e.streak}` : '';
+    const badge = e.isReal && !e.isYou
+      ? `<span class="pm-badge real-badge">REAL</span>`
+      : !e.isReal
+      ? `<span class="pm-badge ai-badge">AI</span>`
+      : '';
+    const removeBtn = e.isReal && !e.isYou
+      ? `<button class="pm-remove" onclick="removeMember('${e.name.replace(/'/g,"\\'")}')">✕</button>`
+      : '';
+
+    row.innerHTML = `
+      <div class="pm-pos">${i + 1}</div>
+      <div class="pm-emoji">${e.emoji}</div>
+      <div class="pm-info">
+        <div class="pm-name">${e.name}${e.isYou ? ' (You)' : ''}</div>
+        <div class="pm-meta">${e.rank}${streakStr}${staleNote}</div>
+      </div>
+      <div class="pm-steps">${e.steps.toLocaleString()}</div>
+      ${badge}${removeBtn}`;
+    list.appendChild(row);
+  });
+
+  // AI note
+  if (aiEntries.length > 0) {
+    aiNote.textContent = `${aiEntries.length} AI wolf${aiEntries.length > 1 ? 's' : ''} filling in until your pack joins. Share your link to replace them!`;
+  } else {
+    aiNote.textContent = '';
+  }
+}
+
+// ── History ──
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!list) return;
+  const hist  = gs.history || {};
+  const today = todayKey();
+  const steps = gs.todaySteps || 0;
+  let html = `
+    <div class="history-day">
+      <div class="hd-date">📅 Today (${today})</div>
+      <div class="hd-steps">${steps.toLocaleString()} steps ${steps >= goal ? '🏆' : ''}</div>
+    </div>`;
+  const dates = Object.keys(hist).sort().reverse();
+  if (dates.length === 0) {
+    html += '<p style="color:var(--dim);text-align:center;padding:20px;font-size:0.8em">No history yet. Keep hunting! 🐺</p>';
+  } else {
+    dates.forEach(d => {
+      const s = hist[d];
+      html += `<div class="history-day">
+        <div class="hd-date">${d} ${s >= goal ? '🏆' : ''}</div>
+        <div class="hd-steps">${s.toLocaleString()} steps</div>
+      </div>`;
+    });
+  }
+  list.innerHTML = html;
+}
+
+// ── XP toast ──
+function showXpToast(xp) {
+  const t = document.getElementById('xp-toast');
+  t.textContent = '+' + xp + ' XP';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TABS & NAV
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tabId, btnEl, navId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+
+  // Sync the inline tab buttons
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabId)) {
+      b.classList.add('active');
+    }
+  });
+
+  if (tabId === 'tab-history') renderHistory();
+  if (tabId === 'tab-pack')    renderPackTab();
+  if (tabId === 'tab-challenges') renderChallenges();
+
+  // Nav highlight
+  if (navId) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const nb = document.getElementById(navId);
+    if (nb) nb.classList.add('active');
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({top:0, behavior:'smooth'});
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-home').classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SENSOR SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function updateSensitivity(val) {
+  sensitivity = parseFloat(val);
+  STEP_THRESHOLD = sensitivityToThreshold(sensitivity);
+  COOLDOWN_MS    = sensitivityToCooldown(sensitivity);
+  localStorage.setItem('wolf_sensitivity', sensitivity);
+  document.getElementById('sensitivity-val').textContent = val;
+}
+
+function updateGoal(val) {
+  goal = parseInt(val);
+  localStorage.setItem('wolf_goal', goal);
+  const k = goal >= 1000 ? (goal/1000).toFixed(goal%1000===0?0:1)+'k' : goal;
+  document.getElementById('goal-val').textContent = k;
+  const meta = document.getElementById('step-meta');
+  if (meta) meta.textContent = `steps today · goal: ${goal.toLocaleString()}`;
+  updateUI();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════════════════
+function startPack() {
+  const name = document.getElementById('username-input').value.trim();
+  if (!name) { document.getElementById('username-input').focus(); return; }
+  gs.username = name;
+  saveGS();
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('main-screen').classList.add('active');
+  document.getElementById('bottom-nav').style.display = 'flex';
+
+  const ud = document.getElementById('username-display');
+  if (ud) ud.textContent = (gs.username || 'WOLF').toUpperCase();
+
+  // Restore slider values
+  document.getElementById('sensitivity-slider').value = sensitivity;
+  document.getElementById('sensitivity-val').textContent = Math.round(sensitivity);
+  document.getElementById('goal-slider').value = goal;
+  const k = goal >= 1000 ? (goal/1000).toFixed(goal%1000===0?0:1)+'k' : goal;
+  document.getElementById('goal-val').textContent = k;
+
+  ensureToday();
+  updateUI();
+
+  // Auto-restart motion if previously granted
+  if (localStorage.getItem('wolf_motion_perm') === '1') {
+    startMotionTracking();
+  }
+
+  // UI refresh loop
+  clearInterval(uiInterval);
+  uiInterval = setInterval(updateUI, 2000);
+}
+
+function resetAll() {
+  if (!confirm('🐺 Reset all your pack data? This cannot be undone.')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+(function init() {
+  gs = loadGS();
+  checkIncomingLink(); // import pack data from URL if present
+  if (gs.username) {
+    document.getElementById('username-input').value = gs.username;
+    enterApp();
+  } else {
+    document.getElementById('setup-screen').classList.add('active');
+  }
+})();
+</script>
+</body>
+</html>
