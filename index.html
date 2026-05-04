@@ -13,346 +13,273 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d1b4e 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
             min-height: 100vh;
             padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow-x: hidden;
         }
 
         .container {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 2px solid #ff6b35;
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(30, 30, 50, 0.95);
             border-radius: 15px;
             padding: 20px;
+            border: 2px solid #ff6b35;
             box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
         }
 
-        .header {
+        .wolf-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            animation: growl 0.6s ease-in-out;
         }
 
-        .header h1 {
-            font-size: 32px;
+        @keyframes growl {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .wolf-header h1 {
+            font-size: 2.5em;
             color: #ff6b35;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+            margin: 10px 0;
+            letter-spacing: 2px;
         }
 
-        .wolf-name-input {
-            width: 100%;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #ff6b35;
-            color: white;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 16px;
-            margin-bottom: 10px;
+        .wolf-header p {
+            color: #ffd700;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 0.9em;
         }
 
-        .wolf-name-input::placeholder {
-            color: #666;
-        }
-
-        .wolves-container {
+        /* Wolf Companions */
+        .wolf-pack {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 30px;
-            min-height: 150px;
-            align-items: center;
+            align-items: flex-end;
+            height: 150px;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
         .wolf {
-            text-align: center;
-            animation: float 3s ease-in-out infinite;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
         }
 
-        .wolf:nth-child(1) {
-            animation-delay: 0s;
+        .wolf-body {
+            font-size: 3em;
+            animation: howl 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 5px rgba(255, 107, 53, 0.6));
         }
 
-        .wolf:nth-child(2) {
-            animation-delay: 0.5s;
+        .wolf:nth-child(1) .wolf-body { animation-delay: 0s; }
+        .wolf:nth-child(2) .wolf-body { animation-delay: 0.3s; font-size: 3.5em; }
+        .wolf:nth-child(3) .wolf-body { animation-delay: 0.6s; }
+
+        @keyframes howl {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(-10px) scaleY(1.1); }
         }
 
-        .wolf:nth-child(3) {
-            animation-delay: 1s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .wolf-emoji {
-            font-size: 60px;
-            margin-bottom: 5px;
-        }
-
-        .wolf-message {
-            font-size: 12px;
+        .wolf-speech {
+            font-size: 0.7em;
             color: #ff6b35;
             font-weight: bold;
-            text-shadow: 0 0 5px rgba(255, 107, 53, 0.3);
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin-top: 5px;
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+            letter-spacing: 1px;
+            animation: speechPulse 1s ease-in-out infinite;
         }
 
-        .stats-box {
-            background: rgba(255, 107, 53, 0.1);
-            border: 1px solid #ff6b35;
+        @keyframes speechPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 107, 53, 0.15);
+            border: 2px solid #ff6b35;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 15px;
+            text-align: center;
         }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+        .stat-card h3 {
+            color: #ffd700;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
         }
 
-        .stat-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .stat-label {
-            color: #aaa;
-            font-size: 14px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
+        .stat-card .stat-value {
+            font-size: 2.5em;
             color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            color: #ffd700;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
         }
 
         .progress-bar {
-            width: 100%;
-            height: 15px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #ff6b35;
             border-radius: 10px;
+            height: 30px;
             overflow: hidden;
-            margin-top: 10px;
+            position: relative;
         }
 
         .progress-fill {
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
             height: 100%;
-            background: linear-gradient(90deg, #ff6b35 0%, #ff8555 100%);
             width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 10px;
-        }
-
-        .buttons-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 120px;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+            color: #000;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 0.8em;
+            transition: width 0.3s ease;
         }
 
+        /* Setup */
+        .setup-section {
+            background: rgba(255, 107, 53, 0.1);
+            border: 2px dashed #ff6b35;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .setup-section label {
+            display: block;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+
+        .setup-section input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ff6b35;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .permission-section {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .permission-section p {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        /* Buttons */
         .btn-primary {
-            background: linear-gradient(135deg, #ff6b35 0%, #ff8555 100%);
-            color: white;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff6b35, #ffa500);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
         }
 
         .btn-secondary {
+            width: 100%;
+            padding: 12px;
             background: rgba(255, 107, 53, 0.2);
-            border: 1px solid #ff6b35;
+            border: 2px solid #ff6b35;
             color: #ff6b35;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 107, 53, 0.3);
-        }
-
-        .pack-message {
-            background: rgba(100, 200, 255, 0.1);
-            border-left: 3px solid #64c8ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #64c8ff;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .manual-entry {
-            background: rgba(255, 107, 53, 0.1);
-            border: 1px solid #ff6b35;
-            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .manual-entry h3 {
-            color: #ff6b35;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-group input {
-            flex: 1;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid #ff6b35;
-            color: white;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .input-group input::placeholder {
-            color: #666;
-        }
-
-        .input-group button {
-            padding: 10px 15px;
-            background: #ff6b35;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
             cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .input-group button:hover {
-            background: #ff8555;
-        }
-
-        .leaderboard {
-            background: rgba(255, 107, 53, 0.1);
-            border: 1px solid #ff6b35;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .leaderboard h3 {
-            color: #ff6b35;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            margin-bottom: 8px;
-            border-radius: 5px;
-            font-size: 13px;
-        }
-
-        .leaderboard-item.you {
-            background: rgba(255, 107, 53, 0.3);
             font-weight: bold;
-        }
-
-        .share-code {
-            background: rgba(100, 200, 255, 0.1);
-            border: 1px solid #64c8ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .share-code h3 {
-            color: #64c8ff;
-            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 10px;
-        }
-
-        .code-display {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 16px;
-            color: #64c8ff;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
-
-        .code-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .code-buttons button {
-            padding: 8px 15px;
-            background: #64c8ff;
-            border: none;
-            color: #000;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .code-buttons button:hover {
-            background: #82d4ff;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 107, 53, 0.3);
-        }
-
-        .tab-btn {
-            padding: 10px 15px;
-            background: transparent;
-            border: none;
-            color: #aaa;
-            font-weight: bold;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
             transition: all 0.3s ease;
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0 15px 0;
+            border-bottom: 2px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            padding: 10px 15px;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.75em;
+            letter-spacing: 1px;
+        }
+
         .tab-btn.active {
-            color: #ff6b35;
             border-bottom-color: #ff6b35;
+            color: #ff6b35;
         }
 
         .tab-content {
@@ -362,290 +289,342 @@
         .tab-content.active {
             display: block;
         }
+
+        .code-section {
+            background: rgba(255, 107, 53, 0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .code-section .code {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff6b35;
+            letter-spacing: 3px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .motivational {
+            text-align: center;
+            color: #ff6b35;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 30px;
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .wolf-header h1 {
+                font-size: 2em;
+            }
+
+            .wolf-pack {
+                height: 120px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🐺 WolvePack</h1>
-            <input type="text" id="wolfName" class="wolf-name-input" placeholder="Your wolf name..." maxlength="20">
+        <div class="wolf-header">
+            <div style="font-size: 3em;">🐺</div>
+            <h1>WOLVEPACK</h1>
+            <p>Run With Your Pack. Hunt With Purpose.</p>
         </div>
 
-        <div class="wolves-container">
-            <div class="wolf">
-                <div class="wolf-emoji">🐺</div>
-                <div class="wolf-message" id="wolf1Msg">HUNT!</div>
+        <!-- Setup Screen -->
+        <div id="setupScreen">
+            <div class="setup-section">
+                <label>Choose Your Wolf Name</label>
+                <input type="text" id="usernameInput" placeholder="Enter your wolf name" maxlength="20">
             </div>
-            <div class="wolf">
-                <div class="wolf-emoji">🐺</div>
-                <div class="wolf-message" id="wolf2Msg">MOVE!</div>
+
+            <div class="permission-section">
+                <p>🐺 The pack needs permission to sense your steps</p>
+                <button class="btn-primary" onclick="requestPermissions()">🔓 GRANT PERMISSION</button>
             </div>
-            <div class="wolf">
-                <div class="wolf-emoji">🐺</div>
-                <div class="wolf-message" id="wolf3Msg">CRUSH!</div>
-            </div>
+
+            <button class="btn-primary" onclick="startPack()">🐺 ENTER THE PACK</button>
         </div>
 
-        <div class="pack-message" id="packMsg">💚 Your pack believes in you!</div>
-
-        <div class="stats-box">
-            <div class="stat-row">
-                <div class="stat-label">Today's Steps</div>
-                <div class="stat-value" id="stepsCount">0</div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div style="text-align: right; font-size: 12px; color: #aaa; margin-top: 5px;">
-                <span id="progressPercent">0%</span> of 10,000
-            </div>
-        </div>
-
-        <div class="buttons-container">
-            <button class="btn btn-primary" onclick="openSync()">🔄 Sync with Google Fit</button>
-            <button class="btn btn-secondary" onclick="resetSteps()">Reset</button>
-        </div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('home')">🏠 Home</button>
-            <button class="tab-btn" onclick="switchTab('log')">📝 Log Steps</button>
-            <button class="tab-btn" onclick="switchTab('pack')">👥 Pack</button>
-        </div>
-
-        <div id="home-tab" class="tab-content active">
-            <div class="leaderboard">
-                <h3>🏆 Pack Leaderboard</h3>
-                <div id="leaderboard"></div>
-            </div>
-
-            <div class="share-code">
-                <h3>📤 Share Your Code</h3>
-                <p style="font-size: 12px; margin-bottom: 10px; color: #aaa;">Friends can compare steps using this code:</p>
-                <div class="code-display" id="yourCode">CODE</div>
-                <div class="code-buttons">
-                    <button onclick="copyCode()">Copy</button>
-                    <button onclick="shareCode()">Share</button>
+        <!-- Main Content -->
+        <div id="mainContent" style="display:none;">
+            <!-- Animated Wolves -->
+            <div class="wolf-pack">
+                <div class="wolf">
+                    <div class="wolf-body">🐺</div>
+                    <div class="wolf-speech" id="wolf1Speech">HUNT!</div>
+                </div>
+                <div class="wolf">
+                    <div class="wolf-body">🐺</div>
+                    <div class="wolf-speech" id="wolf2Speech">PUSH!</div>
+                </div>
+                <div class="wolf">
+                    <div class="wolf-body">🐺</div>
+                    <div class="wolf-speech" id="wolf3Speech">MOVE!</div>
                 </div>
             </div>
-        </div>
 
-        <div id="log-tab" class="tab-content">
-            <div class="manual-entry">
-                <h3>📝 Log Your Steps</h3>
-                <p style="font-size: 12px; margin-bottom: 10px; color: #aaa;">Add steps manually:</p>
-                <div class="input-group">
-                    <input type="number" id="stepInput" placeholder="Number of steps" min="0">
-                    <button onclick="addSteps()">Add</button>
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>👣 Today's Steps</h3>
+                    <div class="stat-value" id="todaySteps">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>🎯 Goal Progress</h3>
+                    <div class="stat-value" id="goalPercent">0%</div>
                 </div>
             </div>
-        </div>
 
-        <div id="pack-tab" class="tab-content">
-            <div class="pack-message" style="margin-bottom: 20px;">
-                <h3 style="margin-bottom: 10px;">🐺 Your Pack Messages</h3>
-                <div id="packMessages" style="text-align: left; font-size: 13px; line-height: 1.8;"></div>
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-label">Progress to 10,000 steps</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+            </div>
+
+            <!-- Motivational Message -->
+            <div class="motivational" id="motivational">🐺 The hunt begins. Take the first step!</div>
+
+            <!-- Pack Code Section -->
+            <div class="code-section">
+                <p style="color: #ffd700; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px;">Your Pack Code</p>
+                <div class="code" id="packCode">LOAD</div>
+                <p style="font-size: 0.75em; color: #aaa; margin-top: 10px;">Share this code with friends to compare!</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('log')">📝 LOG</button>
+                <button class="tab-btn" onclick="switchTab('pack')">🐺 PACK</button>
+            </div>
+
+            <!-- Log Tab -->
+            <div id="log" class="tab-content active">
+                <label style="color: #ffd700; display: block; margin-bottom: 10px; text-transform: uppercase; font-size: 0.8em;">Manual Entry (if auto tracking fails)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="manualSteps" placeholder="Add steps" min="0" style="flex: 1; padding: 10px; border: 2px solid #ff6b35; background: rgba(255,255,255,0.1); color: #fff; border-radius: 8px;">
+                    <button class="btn-primary" onclick="addManualSteps()" style="flex: 0 0 70px; margin: 0;">ADD</button>
+                </div>
+                <button class="btn-secondary" onclick="resetData()" style="margin-top: 20px;">🔄 Reset All</button>
+            </div>
+
+            <!-- Pack Tab -->
+            <div id="pack" class="tab-content">
+                <p style="color: #aaa; text-align: center; padding: 20px;">Your pack awaits! 🐺</p>
             </div>
         </div>
     </div>
 
     <script>
         const GOAL = 10000;
+        const wolfMessages = [
+            { 1: "HUNT!", 2: "PUSH!", 3: "MOVE!" },
+            { 1: "FASTER!", 2: "BREATHE!", 3: "GO!" },
+            { 1: "STRONG!", 2: "FIERCE!", 3: "ROAR!" },
+            { 1: "GLORY!", 2: "POWER!", 3: "APEX!" },
+            { 1: "LEGEND!", 2: "ALPHA!", 3: "KING!" }
+        ];
 
-        // Initialize on load
-        window.addEventListener('load', () => {
-            loadWolfName();
-            loadSteps();
-            updateLeaderboard();
-            updatePackMessages();
-            setInterval(updatePackMessages, 5000);
-        });
+        const motivationalMessages = [
+            "🔥 The pack sees your fire!",
+            "💪 You're becoming unstoppable!",
+            "⚡ Lightning in your legs!",
+            "🏆 This is what legends do!",
+            "🌙 Even the moon howls for you!",
+            "🔮 Destiny bows to your will!",
+            "✨ You ARE the alpha!",
+            "🎯 Perfect pace, wolf!",
+            "🌟 The pack tells stories about YOU!",
+            "🐺 Together we are UNSTOPPABLE!"
+        ];
 
-        // Wolf name management
-        function loadWolfName() {
-            const saved = localStorage.getItem('wolvepack_name');
-            if (saved) {
-                document.getElementById('wolfName').value = saved;
+        async function requestPermissions() {
+            if ('Accelerometer' in window) {
+                try {
+                    const permission = await navigator.permissions.query({ name: 'accelerometer' });
+                    if (permission.state === 'granted' || permission.state === 'prompt') {
+                        alert('🐺 Permission granted! The pack can now sense your steps.');
+                        startStepTracking();
+                    }
+                } catch (err) {
+                    console.log('Accelerometer not supported, will use manual mode');
+                }
+            }
+
+            alert('🐺 The pack is now sensing your movement!');
+        }
+
+        function startStepTracking() {
+            if ('Accelerometer' in window) {
+                try {
+                    const accel = new Accelerometer({ frequency: 10 });
+                    let stepBuffer = 0;
+                    let lastMagnitude = 0;
+
+                    accel.addEventListener('reading', () => {
+                        const magnitude = Math.sqrt(
+                            accel.x ** 2 + accel.y ** 2 + accel.z ** 2
+                        );
+
+                        if (magnitude > 15 && lastMagnitude < 10) {
+                            stepBuffer++;
+
+                            if (stepBuffer >= 2) {
+                                const current = parseInt(localStorage.getItem('todaySteps') || '0');
+                                localStorage.setItem('todaySteps', current + 1);
+                                stepBuffer = 0;
+                                updateUI();
+                            }
+                        }
+                        lastMagnitude = magnitude;
+                    });
+
+                    accel.start();
+                } catch (err) {
+                    console.log('Step tracking unavailable: ' + err);
+                }
             }
         }
 
-        document.getElementById('wolfName').addEventListener('change', (e) => {
-            localStorage.setItem('wolvepack_name', e.target.value);
-            updateLeaderboard();
-        });
-
-        // Load and display steps
-        function loadSteps() {
-            const today = new Date().toISOString().split('T')[0];
-            const steps = parseInt(localStorage.getItem('wolvepack_steps_' + today) || '0');
-            updateDisplay(steps);
-        }
-
-        function updateDisplay(steps) {
-            document.getElementById('stepsCount').textContent = steps.toLocaleString();
-            
-            const percent = Math.min(Math.round((steps / GOAL) * 100), 100);
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressPercent').textContent = percent + '%';
-
-            updateWolfMessages(steps);
-        }
-
-        // Add steps manually
-        function addSteps() {
-            const input = document.getElementById('stepInput');
-            const add = parseInt(input.value);
-            
-            if (isNaN(add) || add <= 0) {
-                alert('Please enter a valid number');
+        function initGame() {
+            const username = localStorage.getItem('wolvepackUsername');
+            if (!username) {
+                document.getElementById('setupScreen').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'none';
                 return;
             }
 
-            const today = new Date().toISOString().split('T')[0];
-            const current = parseInt(localStorage.getItem('wolvepack_steps_' + today) || '0');
-            const newTotal = current + add;
-            
-            localStorage.setItem('wolvepack_steps_' + today, newTotal.toString());
-            localStorage.setItem('wolvepack_last_sync', new Date().toISOString());
-            
-            input.value = '';
-            loadSteps();
-            updateLeaderboard();
-        }
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
 
-        // Reset steps
-        function resetSteps() {
-            if (confirm('Reset today\'s steps?')) {
-                const today = new Date().toISOString().split('T')[0];
-                localStorage.removeItem('wolvepack_steps_' + today);
-                loadSteps();
-                updateLeaderboard();
+            if (!localStorage.getItem('packCode')) {
+                localStorage.setItem('packCode', Math.random().toString(36).substr(2, 6).toUpperCase());
             }
+
+            startStepTracking();
+            updateUI();
+            setInterval(updateUI, 1000);
+            setInterval(updateWolfMessages, 3000);
         }
 
-        // Open sync helper
-        function openSync() {
-            window.location.href = './sync.html';
+        function startPack() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                alert('🐺 A wolf needs a name!');
+                return;
+            }
+
+            localStorage.setItem('wolvepackUsername', username);
+            localStorage.setItem('packCode', Math.random().toString(36).substr(2, 6).toUpperCase());
+            localStorage.setItem('todaySteps', '0');
+
+            initGame();
         }
 
-        // Wolf messages based on progress
-        function updateWolfMessages(steps) {
-            let messages = [];
+        function updateUI() {
+            const steps = parseInt(localStorage.getItem('todaySteps') || '0');
+            const percent = Math.min((steps / GOAL) * 100, 100);
+
+            document.getElementById('todaySteps').innerText = steps.toLocaleString();
+            document.getElementById('goalPercent').innerText = Math.round(percent) + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressFill').innerText = Math.round(percent) + '%';
+
+            updateWolfMessages(steps);
+            updateMotivational(steps);
+
+            document.getElementById('packCode').innerText = localStorage.getItem('packCode') || 'LOAD';
+        }
+
+        function updateWolfMessages(steps = null) {
+            steps = steps || parseInt(localStorage.getItem('todaySteps') || '0');
+            
+            let msgSet;
+            if (steps < 2000) {
+                msgSet = wolfMessages[0];
+            } else if (steps < 5000) {
+                msgSet = wolfMessages[1];
+            } else if (steps < 8000) {
+                msgSet = wolfMessages[2];
+            } else if (steps < GOAL) {
+                msgSet = wolfMessages[3];
+            } else {
+                msgSet = wolfMessages[4];
+            }
+
+            document.getElementById('wolf1Speech').innerText = msgSet[1];
+            document.getElementById('wolf2Speech').innerText = msgSet[2];
+            document.getElementById('wolf3Speech').innerText = msgSet[3];
+        }
+
+        function updateMotivational(steps) {
+            let message;
             
             if (steps === 0) {
-                messages = ['WAKE UP!', 'LET\'S GO!', 'MOVE!'];
-            } else if (steps < 2500) {
-                messages = ['HUNT!', 'PUSH!', 'RUN!'];
+                message = "🐺 The hunt begins. Take the first step!";
+            } else if (steps < 2000) {
+                message = "🐺 The pack is with you. Keep moving!";
             } else if (steps < 5000) {
-                messages = ['FASTER!', 'BREATHE!', 'GO!'];
-            } else if (steps < 7500) {
-                messages = ['STRONG!', 'FIERCE!', 'ROAR!'];
-            } else if (steps < 10000) {
-                messages = ['GLORY!', 'POWER!', 'APEX!'];
+                message = "🐺 Good pace! Your legs are fire!";
+            } else if (steps < 8000) {
+                message = "🐺 YOU'RE CRUSHING IT! Keep that fire!";
+            } else if (steps < GOAL) {
+                message = "🐺 ALMOST THERE! You are UNSTOPPABLE!";
             } else {
-                messages = ['LEGEND!', 'ALPHA!', 'KING!'];
+                message = "🐺 🏆 LEGEND STATUS! The pack bows to YOU! 🏆";
             }
 
-            document.getElementById('wolf1Msg').textContent = messages[0];
-            document.getElementById('wolf2Msg').textContent = messages[1];
-            document.getElementById('wolf3Msg').textContent = messages[2];
+            const randMsg = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            document.getElementById('motivational').innerText = message + " | " + randMsg;
         }
 
-        // Pack messages
-        function updatePackMessages() {
-            const messages = [
-                '💚 Your pack believes in you!',
-                '🐺 The pack runs together!',
-                '⚡ You\'re getting stronger!',
-                '👥 Your pack sees your effort!',
-                '🔥 Keep the momentum going!',
-                '💪 Every step counts, wolf!',
-                '🏃 The pack runs with you!',
-                '🌙 Howl at the moon, runner!',
-                '⚡ Pure pack power right here!',
-                '🐺 Strength in numbers!'
-            ];
+        function addManualSteps() {
+            const input = document.getElementById('manualSteps');
+            const steps = parseInt(input.value);
 
-            const msg = messages[Math.floor(Math.random() * messages.length)];
-            document.getElementById('packMsg').textContent = msg;
-        }
-
-        // Leaderboard
-        function updateLeaderboard() {
-            const today = new Date().toISOString().split('T')[0];
-            const yourName = document.getElementById('wolfName').value || 'You';
-            const yourSteps = parseInt(localStorage.getItem('wolvepack_steps_' + today) || '0');
-
-            let packData = JSON.parse(localStorage.getItem('wolvepack_pack') || '{}');
-            let yourCode = localStorage.getItem('wolvepack_code');
-            
-            if (!yourCode) {
-                yourCode = generateCode();
-                localStorage.setItem('wolvepack_code', yourCode);
+            if (isNaN(steps) || steps < 0) {
+                alert('🐺 Please enter a valid number!');
+                return;
             }
 
-            document.getElementById('yourCode').textContent = yourCode;
-
-            packData[yourCode] = {
-                name: yourName,
-                steps: yourSteps,
-                date: today
-            };
-
-            localStorage.setItem('wolvepack_pack', JSON.stringify(packData));
-
-            const sorted = Object.entries(packData)
-                .filter(([, data]) => data.date === today)
-                .sort((a, b) => b[1].steps - a[1].steps);
-
-            const lb = document.getElementById('leaderboard');
-            lb.innerHTML = sorted.map(([code, data], i) => {
-                const emoji = ['🥇', '🥈', '🥉'][i] || '•';
-                const isYou = code === yourCode ? ' you' : '';
-                return `<div class="leaderboard-item${isYou}">
-                    <span>${emoji} ${data.name}</span>
-                    <span>${data.steps.toLocaleString()} steps</span>
-                </div>`;
-            }).join('');
+            const current = parseInt(localStorage.getItem('todaySteps') || '0');
+            localStorage.setItem('todaySteps', current + steps);
+            input.value = '';
+            updateUI();
         }
 
-        // Code generation and sharing
-        function generateCode() {
-            return 'WOLF' + Math.random().toString(36).substr(2, 8).toUpperCase();
-        }
-
-        function copyCode() {
-            const code = document.getElementById('yourCode').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Code copied: ' + code);
-            });
-        }
-
-        function shareCode() {
-            const code = document.getElementById('yourCode').textContent;
-            const yourName = document.getElementById('wolfName').value || 'A Wolf';
-            const today = new Date().toISOString().split('T')[0];
-            const steps = parseInt(localStorage.getItem('wolvepack_steps_' + today) || '0');
-            
-            const text = `🐺 ${yourName} has ${steps} steps! Join the pack: ${code}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'WolvePack',
-                    text: text
-                });
-            } else {
-                alert(text);
+        function resetData() {
+            if (confirm('🐺 Are you sure? This will reset your pack!')) {
+                localStorage.clear();
+                location.reload();
             }
         }
 
-        // Tab switching
-        function switchTab(tab) {
+        function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tab + '-tab').classList.add('active');
+
+            document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
+
+        // Initialize on load
+        window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
