@@ -117,6 +117,25 @@ body {
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .sensor-label { font-size: 0.7em; color: var(--dim); }
 
+/* Logout button */
+.btn-logout {
+  background: rgba(255,107,53,0.15);
+  border: 1px solid rgba(255,107,53,0.3);
+  color: var(--orange);
+  font-size: 0.65em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+  display: block;
+  text-transform: uppercase;
+}
+.btn-logout:hover { background: rgba(255,107,53,0.25); }
+.btn-logout:active { transform: scale(0.95); }
+
 /* Rank strip */
 .rank-strip {
   display:flex; align-items:center; justify-content:space-between;
@@ -510,6 +529,7 @@ input[type=range] { flex:1; accent-color: var(--orange); }
     <div style="text-align:right">
       <div><span class="sensor-dot" id="sensor-dot"></span><span class="sensor-label" id="sensor-label">sensor off</span></div>
       <div style="font-size:0.65em;color:var(--dim);margin-top:2px" id="last-step-time"></div>
+      <button class="btn-logout" onclick="logout()" title="Switch wolves">🐺 Log Out</button>
     </div>
   </div>
 
@@ -1468,6 +1488,13 @@ function enterApp() {
   // UI refresh loop
   clearInterval(uiInterval);
   uiInterval = setInterval(updateUI, 2000);
+}
+
+function logout() {
+  if (!confirm('🐺 Switch wolves? You\'ll stay logged out until you enter the pack again.')) return;
+  gs.username = null;
+  saveGS();
+  location.reload();
 }
 
 function resetAll() {
