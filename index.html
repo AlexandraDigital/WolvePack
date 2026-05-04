@@ -133,8 +133,13 @@ body {
   display: block;
   text-transform: uppercase;
 }
-.btn-logout:hover { background: rgba(255,107,53,0.25); }
-.btn-logout:active { transform: scale(0.95); }
+.btn-logout:hover:not(:disabled) { background: rgba(255,107,53,0.25); }
+.btn-logout:active:not(:disabled) { transform: scale(0.95); }
+.btn-logout:disabled { 
+  opacity: 0.4; 
+  cursor: not-allowed; 
+  background: rgba(255,107,53,0.08);
+}
 
 /* Rank strip */
 .rank-strip {
@@ -540,7 +545,7 @@ input[type=range] { flex:1; accent-color: var(--orange); }
     <div style="text-align:right">
       <div><span class="sensor-dot" id="sensor-dot"></span><span class="sensor-label" id="sensor-label">sensor off</span></div>
       <div style="font-size:0.65em;color:var(--dim);margin-top:2px" id="last-step-time"></div>
-      <button class="btn-logout" onclick="logout()" title="Switch wolves">🐺 Log Out</button>
+      <button class="btn-logout" id="logout-btn" onclick="logout()" title="Switch wolves">🐺 Log Out</button>
     </div>
   </div>
 
@@ -761,6 +766,11 @@ let STEP_THRESHOLD = sensitivityToThreshold(sensitivity);
 let COOLDOWN_MS    = sensitivityToCooldown(sensitivity);
 let debugMag = 0;
 
+// ── Wolf motivation sounds during active runs ──
+let lastWolfSoundTime = 0;
+let WOLF_SOUND_INTERVAL = 8000; // Play wolf sounds every 8 seconds while running
+let isActivelyRunning = false;
+
 function sensitivityToThreshold(s) {
   // s: 1–10 → threshold: 4.5 (low sens/high threshold) down to 1.0 (high sens/low threshold)
   return 4.5 - (s - 1) * (3.5 / 9);
@@ -921,6 +931,17 @@ function countStep() {
   if (el) el.textContent = 'last step: just now';
   lastStepTime = Date.now();
 
+  // Mark user as actively running
+  isActivelyRunning = true;
+  updateLogoutButtonState();
+  
+  // Play motivational wolf sounds every 8 seconds during active run
+  const now = Date.now();
+  if (now - lastWolfSoundTime > WOLF_SOUND_INTERVAL) {
+    playMotivationalWolfSounds();
+    lastWolfSoundTime = now;
+  }
+
   // Visual bump
   const sc = document.getElementById('step-count');
   if (sc) {
@@ -978,6 +999,14 @@ function manualSet() {
 // ═══════════════════════════════════════════════════════════════
 function updateUI() {
   ensureToday();
+  
+  // Check if user has stopped running (no steps for 3 seconds)
+  const now = Date.now();
+  if (isActivelyRunning && (now - lastStepTime) > 3000) {
+    isActivelyRunning = false;
+    updateLogoutButtonState();
+  }
+  
   const steps = gs.todaySteps || 0;
   const pct   = Math.min(steps / goal, 1);
 
@@ -1547,6 +1576,37 @@ function playWolfSounds() {
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 1);
   }, 1000);
+}
+
+function playMotivationalWolfSounds() {
+  // Shorter encouraging sounds during active runs
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Quick encouraging growl
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+  osc.frequency.setValueAtTime(160, audioContext.currentTime);
+  osc.frequency.setValueAtTime(150, audioContext.currentTime + 0.2);
+  gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  osc.start(audioContext.currentTime);
+  osc.stop(audioContext.currentTime + 0.3);
+}
+
+function updateLogoutButtonState() {
+  const logoutBtn = document.getElementById('logout-btn');
+  if (!logoutBtn) return;
+  
+  // Disable logout button while actively running (no steps for 3 seconds = not running)
+  if (isActivelyRunning) {
+    logoutBtn.disabled = true;
+    logoutBtn.title = '🐺 Keep running! Logout disabled during runs';
+  } else {
+    logoutBtn.disabled = false;
+    logoutBtn.title = 'Switch wolves';
+  }
 }
 
 function logout() {
