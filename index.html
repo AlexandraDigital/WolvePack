@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f1a">
+<meta name="description" content="Run with your pack. Track steps, compete with rivals, earn XP. Background sync keeps you hunting 24/7.">
 <title>🐺 WolvePack</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230f0f1a'/><text x='50%' y='50%' font-size='96' text-anchor='middle' fill='%23ff6b35' dominant-baseline='middle'>🐺</text></svg>">
 <style>
 /* ── Reset & base ── */
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -2242,5 +2246,8 @@ function resetAll() {
   }
 })();
 </script>
+
+<!-- ══ Background Sync & PWA Init ══ -->
+<script src="./background-sync.js"></script>
 </body>
 </html>
