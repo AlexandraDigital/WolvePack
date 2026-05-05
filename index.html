@@ -753,6 +753,20 @@ const ENCOURAGE_PHRASES = [
   "The wind is with you!",
 ];
 
+// ── Witty remarks when user logs out ──
+const WITTY_REMARKS = [
+  "See you later, legend!",
+  "The pack awaits your return!",
+  "Until we run again, warrior!",
+  "Rest well, wolf. We'll be here.",
+  "Catch you on the hunt!",
+  "The alpha nods farewell.",
+  "May the wind guide your path!",
+  "Strength for another day!",
+  "The pack's strength lives in you!",
+  "Even the wilderness misses you!",
+];
+
 const RANKS = [
   { name:'Omega',  label:'Pup',        minXP:0,    color:'#5a5040' },
   { name:'Beta',   label:'Runner',     minXP:200,  color:'#7a6850' },
@@ -1570,6 +1584,39 @@ function enterApp() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  TEXT-TO-SPEECH & VOICE
+// ═══════════════════════════════════════════════════════════════
+function speakAsWolf(text) {
+  // Use Web Speech API to make the wolf speak
+  if (!('speechSynthesis' in window)) {
+    console.log('Speech synthesis not supported');
+    return;
+  }
+  
+  // Cancel any previous speech
+  speechSynthesis.cancel();
+  
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.85; // Slower, more dramatic
+  utterance.pitch = 0.6; // Lower pitch for wolf-like tone
+  utterance.volume = 1.0;
+  
+  // Try to use a more dramatic voice
+  try {
+    const voices = speechSynthesis.getVoices();
+    // Look for a male voice for more wolf-like effect
+    const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('male'));
+    if (maleVoice) {
+      utterance.voice = maleVoice;
+    }
+  } catch(e) {
+    console.log('Voice selection error:', e);
+  }
+  
+  speechSynthesis.speak(utterance);
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  PACE CHECKING & DYNAMIC TAUNTS
 // ═══════════════════════════════════════════════════════════════
 function checkPaceAndTaunt() {
@@ -1595,10 +1642,12 @@ function checkPaceAndTaunt() {
     playTauntWolfHowl();
     const taunt = TAUNT_PHRASES[Math.floor(Math.random() * TAUNT_PHRASES.length)];
     showPhraseBubble(taunt, true);
+    speakAsWolf(taunt); // 🐺 SPEAK the taunt!
   } else {
     playEncourageWolfHowl();
     const encourage = ENCOURAGE_PHRASES[Math.floor(Math.random() * ENCOURAGE_PHRASES.length)];
     showPhraseBubble(encourage, false);
+    speakAsWolf(encourage); // 🐺 SPEAK the encouragement!
   }
 }
 
@@ -1835,7 +1884,12 @@ function updateLogoutButtonState() {
 
 function logout() {
   if (!confirm('🐺 Switch wolves? You\'ll stay logged out until you enter the pack again.')) return;
+  
+  // Get a witty remark and speak it with wolf sounds
+  const remark = WITTY_REMARKS[Math.floor(Math.random() * WITTY_REMARKS.length)];
   playWolfSounds();
+  speakAsWolf(remark); // 🐺 SPEAK the witty remark!
+  
   setTimeout(() => {
     gs.username = null;
     saveGS();
