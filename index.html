@@ -1677,7 +1677,7 @@ function checkPaceAndTaunt() {
   
   // If pace is below 70% of expected, taunt! Otherwise encourage.
   // For testing: if fewer than 1 step per second on average, it's slow (taunt)
-  const isSlowPace = currentPace < expectedPace * 0.7;
+  const isSlowPace = currentPace < expectedPace * 0.95; // SUPER sensitive - any slowdown triggers aggressive
   
   if (isSlowPace) {
     playTauntWolfHowl();
