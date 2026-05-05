@@ -4,7 +4,7 @@
   "description": "Run with your pack. Track steps, compete with rivals, earn XP. Background sync keeps you hunting 24/7.",
   "start_url": "./index.html",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait-primary",
   "theme_color": "#0f0f1a",
   "background_color": "#0f0f1a",
