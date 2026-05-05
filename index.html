@@ -913,6 +913,9 @@ async function requestMotionPermission() {
 function startMotionTracking() {
   if (motionActive) return;
 
+  // Initialize audio context on first motion tracking start
+  initializeAudio();
+  
   window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
   motionActive = true;
 
@@ -920,6 +923,18 @@ function startMotionTracking() {
   const label = document.getElementById('sensor-label');
   if (dot)   dot.classList.add('active');
   if (label) label.textContent = 'sensor active';
+}
+
+function initializeAudio() {
+  // Prime the audio context on first user interaction
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().catch(err => console.log('Audio context already resumed'));
+  }
+  // Also test that speech synthesis is available
+  if ('speechSynthesis' in window) {
+    speechSynthesis.getVoices();
+  }
 }
 
 function stopMotionTracking() {
@@ -1589,28 +1604,54 @@ function enterApp() {
 function speakAsWolf(text) {
   // Use Web Speech API to make the wolf speak
   if (!('speechSynthesis' in window)) {
-    console.log('Speech synthesis not supported');
+    console.log('🐺 Speech synthesis not supported');
     return;
   }
+  
+  console.log('🐺 Wolf speaking:', text);
   
   // Cancel any previous speech
   speechSynthesis.cancel();
   
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.85; // Slower, more dramatic
-  utterance.pitch = 0.6; // Lower pitch for wolf-like tone
+  utterance.rate = 0.8; // Slower, more dramatic
+  utterance.pitch = 0.5; // MUCH lower pitch for wolf-like tone
   utterance.volume = 1.0;
   
   // Try to use a more dramatic voice
   try {
-    const voices = speechSynthesis.getVoices();
-    // Look for a male voice for more wolf-like effect
-    const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('male'));
-    if (maleVoice) {
-      utterance.voice = maleVoice;
+    let voices = speechSynthesis.getVoices();
+    
+    // If voices not loaded, wait for them
+    if (voices.length === 0) {
+      speechSynthesis.onvoiceschanged = () => {
+        voices = speechSynthesis.getVoices();
+        selectAndSpeak(utterance, voices);
+      };
+    } else {
+      selectAndSpeak(utterance, voices);
     }
   } catch(e) {
-    console.log('Voice selection error:', e);
+    console.log('🐺 Voice selection error:', e);
+    speechSynthesis.speak(utterance);
+  }
+}
+
+function selectAndSpeak(utterance, voices) {
+  // Prefer male voices for wolf-like effect
+  let selectedVoice = voices.find(v => 
+    v.name.includes('Male') || v.name.includes('male') || 
+    v.name.includes('Deep') || v.name.includes('deep')
+  );
+  
+  // Fallback to first available voice
+  if (!selectedVoice && voices.length > 0) {
+    selectedVoice = voices[0];
+  }
+  
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+    console.log('🐺 Using voice:', selectedVoice.name);
   }
   
   speechSynthesis.speak(utterance);
@@ -1725,7 +1766,11 @@ function getAudioContext() {
 // Create realistic wolf howl with harmonics and noise
 function createWolfHowl(isAggressive = true) {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx) {
+    console.error('🐺 No audio context available!');
+    return;
+  }
+  console.log('🐺 Creating howl - Aggressive:', isAggressive);
   
   try {
     // Main oscillator - fundamental frequency
@@ -1857,10 +1902,12 @@ function playWolfSounds() {
 }
 
 function playTauntWolfHowl() {
+  console.log('🐺 TAUNT HOWL!');
   createWolfHowl(true); // true = aggressive taunt
 }
 
 function playEncourageWolfHowl() {
+  console.log('🐺 ENCOURAGE HOWL!');
   createWolfHowl(false); // false = triumphant encourage
 }
 
