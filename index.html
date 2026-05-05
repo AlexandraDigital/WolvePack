@@ -1531,68 +1531,103 @@ function enterApp() {
 }
 
 function playWolfSounds() {
-  // Generate wolf howl sounds using Web Audio API
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  // Real wolf sounds from Pixabay + AI voice taunting
+  const wolfHowlUrl = 'https://cdn.pixabay.com/download/audio/2024/11/25/audio_13-29-43-634.mp3';
   
-  // Howl 1 - Taunting
-  setTimeout(() => {
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.frequency.setValueAtTime(200, audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.8);
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + 0.8);
-  }, 0);
+  // Play howl immediately (TAUNTING)
+  const audio1 = new Audio(wolfHowlUrl);
+  audio1.volume = 0.7;
+  audio1.play().catch(() => console.log('Wolf sound playback failed'));
   
-  // Growl - Encouraging
+  // Play AI voice taunt after 600ms
   setTimeout(() => {
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.frequency.setValueAtTime(150, audioContext.currentTime);
-    osc.frequency.setValueAtTime(140, audioContext.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
-    gain.gain.setValueAtTime(0.25, audioContext.currentTime + 0.3);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + 0.5);
+    playAIVoiceTaunt();
   }, 600);
   
-  // Howl 2 - Triumphant
+  // Play second howl after 1000ms (TRIUMPHANT farewell)
   setTimeout(() => {
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.frequency.setValueAtTime(220, audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(90, audioContext.currentTime + 1);
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + 1);
+    const audio2 = new Audio(wolfHowlUrl);
+    audio2.volume = 0.6;
+    audio2.play().catch(() => {});
   }, 1000);
 }
 
 function playMotivationalWolfSounds() {
-  // Shorter encouraging sounds during active runs
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  // Real wolf howl during runs + AI encouragement
+  const wolfHowlUrl = 'https://cdn.pixabay.com/download/audio/2024/11/25/audio_13-29-43-634.mp3';
   
-  // Quick encouraging growl
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
-  osc.frequency.setValueAtTime(160, audioContext.currentTime);
-  osc.frequency.setValueAtTime(150, audioContext.currentTime + 0.2);
-  gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  osc.start(audioContext.currentTime);
-  osc.stop(audioContext.currentTime + 0.3);
+  // Quick wolf howl
+  const audio = new Audio(wolfHowlUrl);
+  audio.volume = 0.5;
+  audio.play().catch(() => {});
+  
+  // Random AI encouragement messages
+  const encouragements = [
+    "Keep it up! The pack believes in you!",
+    "You're crushing it! Keep running!",
+    "Come on, push harder! Show them what you've got!",
+    "The pack is proud of you! Keep going!",
+    "You're unstoppable! Keep moving!",
+    "This is your run! The wolves are cheering!",
+    "Don't stop now! You're on fire!",
+    "The pack demands more! Give it everything!"
+  ];
+  
+  const randomMsg = encouragements[Math.floor(Math.random() * encouragements.length)];
+  playAIVoiceMessage(randomMsg);
+}
+
+// AI Voice Functions
+function playAIVoiceTaunt() {
+  // Taunting messages for logout
+  const taunts = [
+    "Leaving the pack? Coward!",
+    "You can't handle our speed? Pathetic!",
+    "Running away? The wolves laugh at you!",
+    "Weak! The pack rejects you!",
+    "Is the wolf too much for you?",
+    "Flee while you can, weakling!"
+  ];
+  
+  const randomTaunt = taunts[Math.floor(Math.random() * taunts.length)];
+  playAIVoiceMessage(randomTaunt);
+}
+
+function playAIVoiceEncourage() {
+  // Encouraging messages
+  const encouragements = [
+    "Come back stronger!",
+    "The pack awaits your return!",
+    "Rest well, warrior!",
+    "You earned your rest!",
+    "The wolves are proud of you!",
+    "See you next time, brave one!"
+  ];
+  
+  const randomMsg = encouragements[Math.floor(Math.random() * encouragements.length)];
+  playAIVoiceMessage(randomMsg);
+}
+
+function playAIVoiceMessage(message) {
+  // Use Web Speech API for AI voice - sounds like it's coming from the wolf pack!
+  if ('speechSynthesis' in window) {
+    // Cancel any ongoing speech
+    speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 0.9; // Slightly slower for dramatic effect
+    utterance.pitch = 0.6; // Lower pitch for wolf-like sound
+    utterance.volume = 0.7;
+    
+    // Optional: Try to use a deep male voice if available
+    const voices = speechSynthesis.getVoices();
+    const deepVoice = voices.find(v => v.name.includes('Google UK English Male') || v.name.includes('Male'));
+    if (deepVoice) {
+      utterance.voice = deepVoice;
+    }
+    
+    speechSynthesis.speak(utterance);
+  }
 }
 
 function updateLogoutButtonState() {
