@@ -86,5 +86,11 @@
     );
   }
 
+  // Suppress Chrome install prompt banner
+  window.addEventListener('beforeinstallprompt', (evt) => {
+    evt.preventDefault();
+    console.log('🐺 Install prompt suppressed — pure fullscreen experience');
+  });
+
   console.log('🐺 Background sync initialized. Your pack is hunting 24/7!');
 })();
