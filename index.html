@@ -1577,6 +1577,10 @@ function checkPaceAndTaunt() {
   if (sessionStartTime === 0) return;
   
   const elapsedSeconds = (Date.now() - sessionStartTime) / 1000;
+  
+  // Need at least 5 seconds of data to make sense of pace
+  if (elapsedSeconds < 5 || steps === 0) return;
+  
   const currentPace = steps / (elapsedSeconds / 60); // steps per minute
   
   // Expected pace to hit goal by end of day (assume 16 waking hours)
@@ -1584,7 +1588,10 @@ function checkPaceAndTaunt() {
   const expectedPace = goal / (secondsInDay / 60); // target steps per minute
   
   // If pace is below 70% of expected, taunt! Otherwise encourage.
-  if (currentPace < expectedPace * 0.7) {
+  // For testing: if fewer than 1 step per second on average, it's slow (taunt)
+  const isSlowPace = currentPace < expectedPace * 0.7;
+  
+  if (isSlowPace) {
     playTauntWolfHowl();
     const taunt = TAUNT_PHRASES[Math.floor(Math.random() * TAUNT_PHRASES.length)];
     showPhraseBubble(taunt, true);
@@ -1666,6 +1673,92 @@ function getAudioContext() {
   return audioContext;
 }
 
+// Create realistic wolf howl with harmonics and noise
+function createWolfHowl(isAggressive = true) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  
+  try {
+    // Main oscillator - fundamental frequency
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    
+    // Harmonic oscillator - adds richness
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    
+    // Noise for texture
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseBuffer.length; i++) {
+      noiseData[i] = Math.random() * 2 - 1;
+    }
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    
+    // Noise gain (quieter, for texture only)
+    const noiseGain = ctx.createGain();
+    noiseSource.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    
+    // Connect oscillators
+    osc1.connect(gain1);
+    osc2.connect(gain2);
+    gain1.connect(ctx.destination);
+    gain2.connect(ctx.destination);
+    
+    if (isAggressive) {
+      // Taunt howl - aggressive, menacing
+      osc1.frequency.setValueAtTime(160, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
+      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 1.4);
+      
+      osc2.frequency.setValueAtTime(320, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.4);
+      
+      gain1.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
+      
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
+      
+      osc1.start(ctx.currentTime);
+      osc2.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 1.4);
+      osc2.stop(ctx.currentTime + 1.4);
+      noiseSource.start(ctx.currentTime);
+      noiseSource.stop(ctx.currentTime + 1.4);
+    } else {
+      // Encourage howl - triumphant, rising
+      osc1.frequency.setValueAtTime(220, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.6);
+      osc1.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1);
+      
+      osc2.frequency.setValueAtTime(440, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 1);
+      
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime + 0.5);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.5);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      
+      osc1.start(ctx.currentTime);
+      osc2.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 1);
+      osc2.stop(ctx.currentTime + 1);
+      noiseSource.start(ctx.currentTime);
+      noiseSource.stop(ctx.currentTime + 1);
+    }
+  } catch(e) { console.log('Wolf howl error:', e); }
+}
+
 function playWolfSounds() {
   // Generate wolf howl sounds using Web Audio API
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1715,40 +1808,11 @@ function playWolfSounds() {
 }
 
 function playTauntWolfHowl() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  try {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(180, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.6);
-    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 1.2);
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1.2);
-  } catch(e) { console.log('Taunt error:', e); }
+  createWolfHowl(true); // true = aggressive taunt
 }
 
 function playEncourageWolfHowl() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  try {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(240, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.5);
-    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime + 0.5);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1);
-  } catch(e) { console.log('Encourage error:', e); }
+  createWolfHowl(false); // false = triumphant encourage
 }
 
 function playMotivationalWolfSounds() {
