@@ -1792,12 +1792,12 @@ function createWolfHowl(isAggressive = true) {
     const noiseSource = ctx.createBufferSource();
     noiseSource.buffer = noiseBuffer;
     
-    // Noise gain (louder for more gritty texture)
+    // Noise gain (LOUD for gritty texture)
     const noiseGain = ctx.createGain();
     noiseSource.connect(noiseGain);
     noiseGain.connect(ctx.destination);
-    noiseGain.gain.setValueAtTime(0.2, ctx.currentTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 1.5);
+    noiseGain.gain.setValueAtTime(0.5, ctx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 1.5);
     
     // Connect oscillators
     osc1.connect(gain1);
@@ -1814,10 +1814,10 @@ function createWolfHowl(isAggressive = true) {
       osc2.frequency.setValueAtTime(170, ctx.currentTime);  // Octave higher
       osc2.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 1.4);
       
-      gain1.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain1.gain.setValueAtTime(1.0, ctx.currentTime);
       gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
       
-      gain2.gain.setValueAtTime(0.6, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.8, ctx.currentTime);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
       
       osc1.start(ctx.currentTime);
@@ -1835,12 +1835,12 @@ function createWolfHowl(isAggressive = true) {
       osc2.frequency.setValueAtTime(230, ctx.currentTime);  // Octave higher
       osc2.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 1);
       
-      gain1.gain.setValueAtTime(0.75, ctx.currentTime);
-      gain1.gain.setValueAtTime(0.75, ctx.currentTime + 0.5);
+      gain1.gain.setValueAtTime(0.9, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.9, ctx.currentTime + 0.5);
       gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
       
-      gain2.gain.setValueAtTime(0.6, ctx.currentTime);
-      gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.5);
+      gain2.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.8, ctx.currentTime + 0.5);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
       
       osc1.start(ctx.currentTime);
@@ -1865,7 +1865,7 @@ function playWolfSounds() {
     gain.connect(audioContext.destination);
     osc.frequency.setValueAtTime(200, audioContext.currentTime);
     osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.8);
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.setValueAtTime(1.0, audioContext.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 0.8);
@@ -1879,8 +1879,8 @@ function playWolfSounds() {
     gain.connect(audioContext.destination);
     osc.frequency.setValueAtTime(150, audioContext.currentTime);
     osc.frequency.setValueAtTime(140, audioContext.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
-    gain.gain.setValueAtTime(0.25, audioContext.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.9, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.9, audioContext.currentTime + 0.3);
     gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 0.5);
@@ -1894,7 +1894,7 @@ function playWolfSounds() {
     gain.connect(audioContext.destination);
     osc.frequency.setValueAtTime(220, audioContext.currentTime);
     osc.frequency.exponentialRampToValueAtTime(90, audioContext.currentTime + 1);
-    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.95, audioContext.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 1);
