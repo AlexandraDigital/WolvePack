@@ -1553,7 +1553,7 @@ function playWolfSounds() {
 }
 
 function playMotivationalWolfSounds() {
-  // Real wolf howl during runs + AI encouragement
+  // Real wolf howl during runs + AI encouragement + witty remarks
   const wolfHowlUrl = 'https://cdn.pixabay.com/download/audio/2024/11/25/audio_13-29-43-634.mp3';
   
   // Quick wolf howl
@@ -1561,7 +1561,7 @@ function playMotivationalWolfSounds() {
   audio.volume = 0.5;
   audio.play().catch(() => {});
   
-  // Random AI encouragement messages
+  // Random AI encouragement messages + WITTY REMARKS
   const encouragements = [
     "Keep it up! The pack believes in you!",
     "You're crushing it! Keep running!",
@@ -1570,7 +1570,22 @@ function playMotivationalWolfSounds() {
     "You're unstoppable! Keep moving!",
     "This is your run! The wolves are cheering!",
     "Don't stop now! You're on fire!",
-    "The pack demands more! Give it everything!"
+    "The pack demands more! Give it everything!",
+    // WITTY REMARKS
+    "Your ancestors are watching... they're impressed!",
+    "Plot twist: You're actually the alpha now!",
+    "The pack is jealous of your gains!",
+    "Even faster than yesterday? We like the competency!",
+    "At this rate, you'll evolve into a wolf yourself!",
+    "Step tracking? More like step ATTACKING!",
+    "Your legs are basically weapons at this point!",
+    "If cardio is your cardio, then what's the gym?",
+    "You're making us all look bad! Keep it up!",
+    "Speed records were MADE to be broken!",
+    "The treadmill can't keep up with you anymore!",
+    "We're calling you 'The Human Wolfpack' now!",
+    "Your Fitbit is getting jealous of your steps!",
+    "Even the other wolves are asking for your autograph!"
   ];
   
   const randomMsg = encouragements[Math.floor(Math.random() * encouragements.length)];
@@ -1579,14 +1594,31 @@ function playMotivationalWolfSounds() {
 
 // AI Voice Functions
 function playAIVoiceTaunt() {
-  // Taunting messages for logout
+  // SAVAGE taunting messages for logout + WITTY REMARKS
   const taunts = [
     "Leaving the pack? Coward!",
     "You can't handle our speed? Pathetic!",
     "Running away? The wolves laugh at you!",
     "Weak! The pack rejects you!",
     "Is the wolf too much for you?",
-    "Flee while you can, weakling!"
+    "Flee while you can, weakling!",
+    // WITTY TAUNTS
+    "See you tomorrow, step-counter!",
+    "Even the sloth moves faster than your logout button!",
+    "Goodbye, you magnificent softie!",
+    "Your future self will haunt you for this!",
+    "The pack will remember this betrayal!",
+    "Plot twist: You're quitting EXACTLY when you were about to crush a record!",
+    "Your steps are breaking up with you!",
+    "This is sad. I'm not even mad, I'm disappointed!",
+    "The other wolves are texting about this right now!",
+    "Stamina is overrated anyway!",
+    "Give my regards to the couch!",
+    "Even your ancestors are facepalming!",
+    "I give you five minutes before you're back. I'm betting on it!",
+    "Your knees called... they said they're not tired yet!",
+    "The wolf in you just quit the wolf in you!",
+    "Well, that was a solid attempt at quitting!"
   ];
   
   const randomTaunt = taunts[Math.floor(Math.random() * taunts.length)];
