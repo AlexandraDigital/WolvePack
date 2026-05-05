@@ -2388,9 +2388,8 @@ window.addEventListener('load', () => {
 document.addEventListener('click', requestFullscreen, { once: true });
 document.addEventListener('touchstart', requestFullscreen, { once: true });
 
-// Hide scrollbars completely
-document.documentElement.style.overflow = 'hidden';
-document.body.style.overflow = 'hidden';
+// Allow normal scrolling — users need to navigate the app!
+// (removed overflow:hidden that was blocking scrolling)
 </script>
 
 <!-- ══════════════════════════════════════
