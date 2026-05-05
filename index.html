@@ -1615,7 +1615,7 @@ function speakAsWolf(text) {
   
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 0.8; // Slower, more dramatic
-  utterance.pitch = 0.5; // MUCH lower pitch for wolf-like tone
+  utterance.pitch = 0.25; // ULTRA deep pitch for massive wolf voice
   utterance.volume = 1.0;
   
   // Try to use a more dramatic voice
@@ -1792,12 +1792,12 @@ function createWolfHowl(isAggressive = true) {
     const noiseSource = ctx.createBufferSource();
     noiseSource.buffer = noiseBuffer;
     
-    // Noise gain (quieter, for texture only)
+    // Noise gain (louder for more gritty texture)
     const noiseGain = ctx.createGain();
     noiseSource.connect(noiseGain);
     noiseGain.connect(ctx.destination);
-    noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    noiseGain.gain.setValueAtTime(0.2, ctx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 1.5);
     
     // Connect oscillators
     osc1.connect(gain1);
@@ -1806,18 +1806,18 @@ function createWolfHowl(isAggressive = true) {
     gain2.connect(ctx.destination);
     
     if (isAggressive) {
-      // Taunt howl - aggressive, menacing
-      osc1.frequency.setValueAtTime(160, ctx.currentTime);
-      osc1.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
-      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 1.4);
+      // Taunt howl - aggressive, menacing (DEEP!)
+      osc1.frequency.setValueAtTime(85, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.5);
+      osc1.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 1.4);
       
-      osc2.frequency.setValueAtTime(320, ctx.currentTime);  // Octave higher
-      osc2.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.4);
+      osc2.frequency.setValueAtTime(170, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 1.4);
       
-      gain1.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.8, ctx.currentTime);
       gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
       
-      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.6, ctx.currentTime);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
       
       osc1.start(ctx.currentTime);
@@ -1827,20 +1827,20 @@ function createWolfHowl(isAggressive = true) {
       noiseSource.start(ctx.currentTime);
       noiseSource.stop(ctx.currentTime + 1.4);
     } else {
-      // Encourage howl - triumphant, rising
-      osc1.frequency.setValueAtTime(220, ctx.currentTime);
-      osc1.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.6);
-      osc1.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1);
+      // Encourage howl - triumphant, rising (DEEP!)
+      osc1.frequency.setValueAtTime(115, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.6);
+      osc1.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1);
       
-      osc2.frequency.setValueAtTime(440, ctx.currentTime);  // Octave higher
-      osc2.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 1);
+      osc2.frequency.setValueAtTime(230, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 1);
       
-      gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain1.gain.setValueAtTime(0.3, ctx.currentTime + 0.5);
+      gain1.gain.setValueAtTime(0.75, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.75, ctx.currentTime + 0.5);
       gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
       
-      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.5);
+      gain2.gain.setValueAtTime(0.6, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.5);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
       
       osc1.start(ctx.currentTime);
