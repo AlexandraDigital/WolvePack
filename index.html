@@ -721,6 +721,38 @@ const MOTIV = [
   "Every step is a victory!",
 ];
 
+// ── Dynamic taunt phrases when user is slowing down ──
+const TAUNT_PHRASES = [
+  "The pack is catching up to you!",
+  "You're falling behind, wolf!",
+  "Come on, pick up the pace!",
+  "The others smell weakness!",
+  "Your rivals are laughing at you!",
+  "Don't lose the hunt now!",
+  "The alpha waits for no one!",
+  "Your streak is on the line!",
+  "Show them what you're made of!",
+  "The pack needs you!",
+  "You're faster than this!",
+  "Slow pokes get left behind!",
+  "Fight through it!",
+  "Dig deeper!",
+];
+
+// ── Encouragement phrases when user is on pace ──
+const ENCOURAGE_PHRASES = [
+  "Now that's the pace!",
+  "You're crushing it!",
+  "Keep this momentum going!",
+  "The pack runs with you!",
+  "Perfect pace, warrior!",
+  "You ARE the hunt!",
+  "Nothing can stop you now!",
+  "Legend in the making!",
+  "Feel that power!",
+  "The wind is with you!",
+];
+
 const RANKS = [
   { name:'Omega',  label:'Pup',        minXP:0,    color:'#5a5040' },
   { name:'Beta',   label:'Runner',     minXP:200,  color:'#7a6850' },
@@ -769,7 +801,10 @@ let debugMag = 0;
 // ── Wolf motivation sounds during active runs ──
 let lastWolfSoundTime = 0;
 let WOLF_SOUND_INTERVAL = 8000; // Play wolf sounds every 8 seconds while running
+let lastPaceCheckTime = 0;
+let PACE_CHECK_INTERVAL = 15000; // Check pace every 15 seconds
 let isActivelyRunning = false;
+let sessionStartTime = 0; // Track when current session started
 
 function sensitivityToThreshold(s) {
   // s: 1–10 → threshold: 4.5 (low sens/high threshold) down to 1.0 (high sens/low threshold)
@@ -931,14 +966,18 @@ function countStep() {
   if (el) el.textContent = 'last step: just now';
   lastStepTime = Date.now();
 
-  // Mark user as actively running
+  // Mark user as actively running and track session start
+  if (!isActivelyRunning) {
+    sessionStartTime = Date.now();
+  }
   isActivelyRunning = true;
   updateLogoutButtonState();
   
   // Play motivational wolf sounds every 8 seconds during active run
   const now = Date.now();
   if (now - lastWolfSoundTime > WOLF_SOUND_INTERVAL) {
-    playMotivationalWolfSounds();
+    // Check pace and play appropriate audio
+    checkPaceAndTaunt();
     lastWolfSoundTime = now;
   }
 
@@ -1530,136 +1569,254 @@ function enterApp() {
   uiInterval = setInterval(updateUI, 2000);
 }
 
-function playWolfSounds() {
-  // Real wolf sounds from Pixabay + AI voice taunting
-  const wolfHowlUrl = 'https://cdn.pixabay.com/download/audio/2024/11/25/audio_13-29-43-634.mp3';
+// ═══════════════════════════════════════════════════════════════
+//  PACE CHECKING & DYNAMIC TAUNTS
+// ═══════════════════════════════════════════════════════════════
+function checkPaceAndTaunt() {
+  const steps = gs.todaySteps || 0;
+  if (sessionStartTime === 0) return;
   
-  // Play howl immediately (TAUNTING)
-  const audio1 = new Audio(wolfHowlUrl);
-  audio1.volume = 0.7;
-  audio1.play().catch(() => console.log('Wolf sound playback failed'));
+  const elapsedSeconds = (Date.now() - sessionStartTime) / 1000;
   
-  // Play AI voice taunt after 600ms
+  // Need at least 5 seconds of data to make sense of pace
+  if (elapsedSeconds < 5 || steps === 0) return;
+  
+  const currentPace = steps / (elapsedSeconds / 60); // steps per minute
+  
+  // Expected pace to hit goal by end of day (assume 16 waking hours)
+  const secondsInDay = 16 * 60 * 60; // 16 hours
+  const expectedPace = goal / (secondsInDay / 60); // target steps per minute
+  
+  // If pace is below 70% of expected, taunt! Otherwise encourage.
+  // For testing: if fewer than 1 step per second on average, it's slow (taunt)
+  const isSlowPace = currentPace < expectedPace * 0.7;
+  
+  if (isSlowPace) {
+    playTauntWolfHowl();
+    const taunt = TAUNT_PHRASES[Math.floor(Math.random() * TAUNT_PHRASES.length)];
+    showPhraseBubble(taunt, true);
+  } else {
+    playEncourageWolfHowl();
+    const encourage = ENCOURAGE_PHRASES[Math.floor(Math.random() * ENCOURAGE_PHRASES.length)];
+    showPhraseBubble(encourage, false);
+  }
+}
+
+function showPhraseBubble(phrase, isTaunt) {
+  // Find or create a phrase display element
+  let bubble = document.getElementById('phrase-bubble');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.id = 'phrase-bubble';
+    bubble.style.cssText = `
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${isTaunt ? 'rgba(200, 50, 50, 0.9)' : 'rgba(76, 175, 80, 0.9)'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 1000;
+      max-width: 80%;
+      text-align: center;
+      animation: slideUp 0.3s ease-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    document.body.appendChild(bubble);
+  }
+  
+  bubble.textContent = phrase;
+  bubble.style.background = isTaunt ? 'rgba(200, 50, 50, 0.9)' : 'rgba(76, 175, 80, 0.9)';
+  bubble.style.display = 'block';
+  
+  // Add animation
+  if (!document.querySelector('style[data-phrase-animation]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-phrase-animation', 'true');
+    style.textContent = `
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes slideDown {
+        from { opacity: 1; transform: translateX(-50%) translateY(0); }
+        to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Auto-hide after 3 seconds
   setTimeout(() => {
-    playAIVoiceTaunt();
+    bubble.style.animation = 'slideDown 0.3s ease-out forwards';
+    setTimeout(() => { bubble.style.display = 'none'; }, 300);
+  }, 3000);
+}
+
+// Global audio context manager for wolf sounds
+let audioContext = null;
+
+function getAudioContext() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) {
+      console.error('Audio context not supported');
+      return null;
+    }
+  }
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume().catch(err => console.log('Resume error:', err));
+  }
+  return audioContext;
+}
+
+// Create realistic wolf howl with harmonics and noise
+function createWolfHowl(isAggressive = true) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  
+  try {
+    // Main oscillator - fundamental frequency
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    
+    // Harmonic oscillator - adds richness
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    
+    // Noise for texture
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseBuffer.length; i++) {
+      noiseData[i] = Math.random() * 2 - 1;
+    }
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    
+    // Noise gain (quieter, for texture only)
+    const noiseGain = ctx.createGain();
+    noiseSource.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    
+    // Connect oscillators
+    osc1.connect(gain1);
+    osc2.connect(gain2);
+    gain1.connect(ctx.destination);
+    gain2.connect(ctx.destination);
+    
+    if (isAggressive) {
+      // Taunt howl - aggressive, menacing
+      osc1.frequency.setValueAtTime(160, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
+      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 1.4);
+      
+      osc2.frequency.setValueAtTime(320, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.4);
+      
+      gain1.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
+      
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.4);
+      
+      osc1.start(ctx.currentTime);
+      osc2.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 1.4);
+      osc2.stop(ctx.currentTime + 1.4);
+      noiseSource.start(ctx.currentTime);
+      noiseSource.stop(ctx.currentTime + 1.4);
+    } else {
+      // Encourage howl - triumphant, rising
+      osc1.frequency.setValueAtTime(220, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.6);
+      osc1.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1);
+      
+      osc2.frequency.setValueAtTime(440, ctx.currentTime);  // Octave higher
+      osc2.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 1);
+      
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime + 0.5);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.5);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      
+      osc1.start(ctx.currentTime);
+      osc2.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 1);
+      osc2.stop(ctx.currentTime + 1);
+      noiseSource.start(ctx.currentTime);
+      noiseSource.stop(ctx.currentTime + 1);
+    }
+  } catch(e) { console.log('Wolf howl error:', e); }
+}
+
+function playWolfSounds() {
+  // Generate wolf howl sounds using Web Audio API
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Howl 1 - Taunting
+  setTimeout(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(200, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.8);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.8);
+  }, 0);
+  
+  // Growl - Encouraging
+  setTimeout(() => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(150, audioContext.currentTime);
+    osc.frequency.setValueAtTime(140, audioContext.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.25, audioContext.currentTime + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.5);
   }, 600);
   
-  // Play second howl after 1000ms (TRIUMPHANT farewell)
+  // Howl 2 - Triumphant
   setTimeout(() => {
-    const audio2 = new Audio(wolfHowlUrl);
-    audio2.volume = 0.6;
-    audio2.play().catch(() => {});
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(220, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, audioContext.currentTime + 1);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 1);
   }, 1000);
 }
 
+function playTauntWolfHowl() {
+  createWolfHowl(true); // true = aggressive taunt
+}
+
+function playEncourageWolfHowl() {
+  createWolfHowl(false); // false = triumphant encourage
+}
+
 function playMotivationalWolfSounds() {
-  // Real wolf howl during runs + AI encouragement + witty remarks
-  const wolfHowlUrl = 'https://cdn.pixabay.com/download/audio/2024/11/25/audio_13-29-43-634.mp3';
-  
-  // Quick wolf howl
-  const audio = new Audio(wolfHowlUrl);
-  audio.volume = 0.5;
-  audio.play().catch(() => {});
-  
-  // Random AI encouragement messages + WITTY REMARKS
-  const encouragements = [
-    "Keep it up! The pack believes in you!",
-    "You're crushing it! Keep running!",
-    "Come on, push harder! Show them what you've got!",
-    "The pack is proud of you! Keep going!",
-    "You're unstoppable! Keep moving!",
-    "This is your run! The wolves are cheering!",
-    "Don't stop now! You're on fire!",
-    "The pack demands more! Give it everything!",
-    // WITTY REMARKS
-    "Your ancestors are watching... they're impressed!",
-    "Plot twist: You're actually the alpha now!",
-    "The pack is jealous of your gains!",
-    "Even faster than yesterday? We like the competency!",
-    "At this rate, you'll evolve into a wolf yourself!",
-    "Step tracking? More like step ATTACKING!",
-    "Your legs are basically weapons at this point!",
-    "If cardio is your cardio, then what's the gym?",
-    "You're making us all look bad! Keep it up!",
-    "Speed records were MADE to be broken!",
-    "The treadmill can't keep up with you anymore!",
-    "We're calling you 'The Human Wolfpack' now!",
-    "Your Fitbit is getting jealous of your steps!",
-    "Even the other wolves are asking for your autograph!"
-  ];
-  
-  const randomMsg = encouragements[Math.floor(Math.random() * encouragements.length)];
-  playAIVoiceMessage(randomMsg);
-}
-
-// AI Voice Functions
-function playAIVoiceTaunt() {
-  // SAVAGE taunting messages for logout + WITTY REMARKS
-  const taunts = [
-    "Leaving the pack? Coward!",
-    "You can't handle our speed? Pathetic!",
-    "Running away? The wolves laugh at you!",
-    "Weak! The pack rejects you!",
-    "Is the wolf too much for you?",
-    "Flee while you can, weakling!",
-    // WITTY TAUNTS
-    "See you tomorrow, step-counter!",
-    "Even the sloth moves faster than your logout button!",
-    "Goodbye, you magnificent softie!",
-    "Your future self will haunt you for this!",
-    "The pack will remember this betrayal!",
-    "Plot twist: You're quitting EXACTLY when you were about to crush a record!",
-    "Your steps are breaking up with you!",
-    "This is sad. I'm not even mad, I'm disappointed!",
-    "The other wolves are texting about this right now!",
-    "Stamina is overrated anyway!",
-    "Give my regards to the couch!",
-    "Even your ancestors are facepalming!",
-    "I give you five minutes before you're back. I'm betting on it!",
-    "Your knees called... they said they're not tired yet!",
-    "The wolf in you just quit the wolf in you!",
-    "Well, that was a solid attempt at quitting!"
-  ];
-  
-  const randomTaunt = taunts[Math.floor(Math.random() * taunts.length)];
-  playAIVoiceMessage(randomTaunt);
-}
-
-function playAIVoiceEncourage() {
-  // Encouraging messages
-  const encouragements = [
-    "Come back stronger!",
-    "The pack awaits your return!",
-    "Rest well, warrior!",
-    "You earned your rest!",
-    "The wolves are proud of you!",
-    "See you next time, brave one!"
-  ];
-  
-  const randomMsg = encouragements[Math.floor(Math.random() * encouragements.length)];
-  playAIVoiceMessage(randomMsg);
-}
-
-function playAIVoiceMessage(message) {
-  // Use Web Speech API for AI voice - sounds like it's coming from the wolf pack!
-  if ('speechSynthesis' in window) {
-    // Cancel any ongoing speech
-    speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.rate = 0.9; // Slightly slower for dramatic effect
-    utterance.pitch = 0.6; // Lower pitch for wolf-like sound
-    utterance.volume = 0.7;
-    
-    // Optional: Try to use a deep male voice if available
-    const voices = speechSynthesis.getVoices();
-    const deepVoice = voices.find(v => v.name.includes('Google UK English Male') || v.name.includes('Male'));
-    if (deepVoice) {
-      utterance.voice = deepVoice;
-    }
-    
-    speechSynthesis.speak(utterance);
-  }
+  // Called by checkPaceAndTaunt now - this is a legacy wrapper
 }
 
 function updateLogoutButtonState() {
