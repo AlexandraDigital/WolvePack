@@ -2249,5 +2249,37 @@ function resetAll() {
 
 <!-- ══ Background Sync & PWA Init ══ -->
 <script src="./background-sync.js"></script>
+
+<!-- ══════════════════════════════════════
+     FULLSCREEN MODE - HIDE ALL CHROME UI
+     ══════════════════════════════════════ -->
+<script>
+// Request fullscreen to hide ALL browser UI including Chrome icon
+function requestFullscreen() {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen().catch(err => console.log('Fullscreen request blocked by browser'));
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.mozRequestFullScreen) {
+    elem.mozRequestFullScreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+}
+
+// Request fullscreen on load and user interaction
+window.addEventListener('load', () => {
+  setTimeout(requestFullscreen, 500);
+});
+
+// Also request on any user tap/click
+document.addEventListener('click', requestFullscreen, { once: true });
+document.addEventListener('touchstart', requestFullscreen, { once: true });
+
+// Hide scrollbars completely
+document.documentElement.style.overflow = 'hidden';
+document.body.style.overflow = 'hidden';
+</script>
 </body>
 </html>
