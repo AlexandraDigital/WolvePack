@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  wolvepack-backend:
+    build: .
+    container_name: wolvepack-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    volumes:
+      - ./wolvepack.db:/app/wolvepack.db
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - wolvepack-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Add nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: wolvepack-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - wolvepack-backend
+    restart: unless-stopped
+    networks:
+      - wolvepack-net
+
+networks:
+  wolvepack-net:
+    driver: bridge
+
+volumes:
+  wolvepack-db:
+    driver: local

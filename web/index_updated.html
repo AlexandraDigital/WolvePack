@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐺 WolvePack - Run With Your Pack (Cloud Sync)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(30, 30, 50, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .wolf-header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: growl 0.6s ease-in-out;
+        }
+
+        @keyframes growl {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .wolf-header h1 {
+            font-size: 2.5em;
+            color: #ff6b35;
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+
+        .wolf-header p {
+            color: #ffd700;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* Sync Status */
+        .sync-status {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            text-align: center;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .sync-status.synced {
+            border-left-color: #00d084;
+            color: #00d084;
+        }
+
+        .sync-status.syncing {
+            border-left-color: #ffd700;
+            color: #ffd700;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Wolf Companions */
+        .wolf-pack {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 150px;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wolf {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .wolf-body {
+            font-size: 3em;
+            animation: howl 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 5px rgba(255, 107, 53, 0.6));
+        }
+
+        .wolf:nth-child(1) .wolf-body { animation-delay: 0s; }
+        .wolf:nth-child(2) .wolf-body { animation-delay: 0.3s; font-size: 3.5em; }
+        .wolf:nth-child(3) .wolf-body { animation-delay: 0.6s; }
+
+        @keyframes howl {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(-10px) scaleY(1.1); }
+        }
+
+        .wolf-speech {
+            font-size: 0.7em;
+            color: #ff6b35;
+            font-weight: bold;
+            margin-top: 5px;
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+            letter-spacing: 1px;
+            animation: speechPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes speechPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 107, 53, 0.15);
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #ffd700;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.5em;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #ff6b35;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Input Section */
+        .input-section {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-section input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ff6b35;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .input-section input::placeholder {
+            color: #999;
+        }
+
+        .input-section button {
+            padding: 12px 20px;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .input-section button:hover {
+            background: #ffd700;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px;
+            border: 2px solid #ff6b35;
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            background: #ff6b35;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn.sync-btn {
+            grid-column: 1 / -1;
+            background: rgba(0, 208, 132, 0.2);
+            border-color: #00d084;
+            color: #00d084;
+        }
+
+        .btn.sync-btn:hover {
+            background: #00d084;
+            color: #000;
+        }
+
+        /* Achievements */
+        .achievements {
+            margin: 20px 0;
+        }
+
+        .achievements h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        .achievement-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+        }
+
+        .achievement {
+            text-align: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .achievement:hover {
+            transform: scale(1.2);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1e1e32;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff6b35;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            color: #ff6b35;
+            font-size: 2em;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        /* User Info */
+        .user-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .user-info .username {
+            color: #ffd700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Wolf Header -->
+        <div class="wolf-header">
+            <h1>🐺 WOLVEPACK</h1>
+            <p>Run With Your Pack</p>
+        </div>
+
+        <!-- Sync Status -->
+        <div class="sync-status" id="syncStatus">
+            📡 Initializing...
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div>User: <span class="username" id="username">Loading...</span></div>
+            <div id="lastSync" style="font-size: 0.75em; margin-top: 5px;">Last sync: Never</div>
+        </div>
+
+        <!-- Wolf Pack Animation -->
+        <div class="wolf-pack">
+            <div class="wolf">
+                <div class="wolf-body">🐺</div>
+                <div class="wolf-speech">HOWL!</div>
+            </div>
+            <div class="wolf">
+                <div class="wolf-body">🐺</div>
+                <div class="wolf-speech">PACK!</div>
+            </div>
+            <div class="wolf">
+                <div class="wolf-body">🐺</div>
+                <div class="wolf-speech">RUN!</div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Today's Steps</h3>
+                <div class="stat-value" id="todaySteps">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Weekly Avg</h3>
+                <div class="stat-value" id="weeklyAvg">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Best Day</h3>
+                <div class="stat-value" id="bestDay">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Days Active</h3>
+                <div class="stat-value" id="daysActive">0</div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-label">
+                <span>Daily Goal (10,000 steps)</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%;">
+                    <span id="progressText">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <input type="number" id="stepInput" placeholder="Enter steps..." min="0">
+            <button onclick="addSteps()">Add Steps</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn sync-btn" onclick="syncNow()">⚡ Sync Now</button>
+            <button class="btn" onclick="openAndroidGuide()">📱 Android App</button>
+            <button class="btn" onclick="resetData()">🔄 Reset Today</button>
+            <button class="btn" onclick="shareProgress()">📤 Share</button>
+        </div>
+
+        <!-- Achievements -->
+        <div class="achievements">
+            <h3>🏆 Achievements</h3>
+            <div class="achievement-list" id="achievementList">
+                <div class="achievement" title="First Steps">👣</div>
+                <div class="achievement" title="5K Steps">🏃</div>
+                <div class="achievement" title="10K Steps">🎯</div>
+                <div class="achievement" title="50K Week">🚀</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Android Guide Modal -->
+    <div class="modal" id="androidModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2>📱 Android App Setup</h2>
+            <p>WolvePack Android app syncs directly from Samsung Health!</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">
+                <strong>Features:</strong><br>
+                ✅ Auto-sync from Samsung Health<br>
+                ✅ Background sync every 24 hours<br>
+                ✅ Cloud backup<br>
+                ✅ Offline support
+            </p>
+            <button class="btn" style="margin-top: 20px; width: 100%;" 
+                    onclick="window.open('https://github.com/AlexandraDigital/WolvePack/releases', '_blank')">
+                Download APK
+            </button>
+        </div>
+    </div>
+
+    <!-- Achievement Modal -->
+    <div class="modal" id="achievementModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeAchievementModal()">&times;</span>
+            <h2 id="achievementTitle">🏆 Achievement Unlocked!</h2>
+            <p id="achievementDesc">You've taken a huge step forward!</p>
+            <p style="font-size: 3em; margin: 20px 0;" id="achievementBadge">🎉</p>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const API_BASE_URL = localStorage.getItem('apiUrl') || 'http://localhost:3000/api';
+        const DAILY_GOAL = 10000;
+
+        let currentUser = null;
+        let todaySteps = 0;
+        let stats = {};
+
+        // ===== INITIALIZATION =====
+        async function init() {
+            await initializeUser();
+            await loadTodaySteps();
+            await loadStats();
+            syncStatus('✅ Connected', 'synced');
+        }
+
+        async function initializeUser() {
+            let userId = localStorage.getItem('wolvepack_user_id');
+            
+            if (!userId) {
+                // Create new user
+                const username = `user_${Date.now()}`;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/users`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const user = await response.json();
+                    userId = user.id;
+                    localStorage.setItem('wolvepack_user_id', userId);
+                } catch (e) {
+                    console.error('Failed to create user:', e);
+                    syncStatus('⚠️ Offline Mode', 'offline');
+                    return;
+                }
+            }
+
+            currentUser = { id: userId };
+            document.getElementById('username').textContent = userId.substring(0, 8) + '...';
+            document.getElementById('userInfo').style.display = 'block';
+        }
+
+        async function loadTodaySteps() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/steps/${currentUser.id}/today`);
+                const data = await response.json();
+                todaySteps = data.steps || 0;
+                updateUI();
+            } catch (e) {
+                console.error('Failed to load today steps:', e);
+                // Try to load from localStorage fallback
+                todaySteps = parseInt(localStorage.getItem('wolvepack_today_steps') || '0');
+                updateUI();
+            }
+        }
+
+        async function loadStats() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats/${currentUser.id}`);
+                stats = await response.json();
+                updateStatsDisplay();
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+
+        // ===== UI UPDATES =====
+        function updateUI() {
+            document.getElementById('todaySteps').textContent = todaySteps.toLocaleString();
+            
+            const progress = Math.min((todaySteps / DAILY_GOAL) * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+            document.getElementById('progressText').textContent = todaySteps;
+
+            // Check achievements
+            checkAchievements();
+
+            // Save to localStorage
+            localStorage.setItem('wolvepack_today_steps', todaySteps);
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('weeklyAvg').textContent = 
+                Math.round(stats.avg_steps || 0).toLocaleString();
+            document.getElementById('bestDay').textContent = 
+                (stats.max_steps || 0).toLocaleString();
+            document.getElementById('daysActive').textContent = 
+                stats.days_tracked || 0;
+        }
+
+        function syncStatus(message, status) {
+            const el = document.getElementById('syncStatus');
+            el.textContent = message;
+            el.className = 'sync-status ' + status;
+        }
+
+        // ===== ACTIONS =====
+        async function addSteps() {
+            const input = document.getElementById('stepInput');
+            const steps = parseInt(input.value);
+            
+            if (isNaN(steps) || steps <= 0) {
+                alert('Please enter a valid number');
+                return;
+            }
+
+            todaySteps += steps;
+            input.value = '';
+            updateUI();
+
+            // Sync to backend
+            await syncNow();
+        }
+
+        async function syncNow() {
+            if (!currentUser) return;
+
+            syncStatus('🔄 Syncing...', 'syncing');
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`${API_BASE_URL}/steps`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        steps: todaySteps,
+                        date: today,
+                        source: 'web'
+                    })
+                });
+
+                if (response.ok) {
+                    const now = new Date().toLocaleTimeString();
+                    document.getElementById('lastSync').textContent = 
+                        `Last sync: ${now}`;
+                    syncStatus('✅ Synced', 'synced');
+                    
+                    // Reload stats
+                    await loadStats();
+                } else {
+                    syncStatus('❌ Sync failed', 'error');
+                }
+            } catch (e) {
+                console.error('Sync error:', e);
+                syncStatus('⚠️ Offline', 'offline');
+            }
+        }
+
+        function resetData() {
+            if (confirm('Reset today\'s step count?')) {
+                todaySteps = 0;
+                updateUI();
+                syncNow();
+            }
+        }
+
+        function shareProgress() {
+            const progress = Math.round((todaySteps / DAILY_GOAL) * 100);
+            const message = `🐺 I've completed ${progress}% of my daily goal with WolvePack! Run with your pack! 🐺`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'WolvePack Progress',
+                    text: message
+                });
+            } else {
+                alert(message);
+            }
+        }
+
+        function openAndroidGuide() {
+            document.getElementById('androidModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('androidModal').classList.remove('active');
+        }
+
+        function closeAchievementModal() {
+            document.getElementById('achievementModal').classList.remove('active');
+        }
+
+        // ===== ACHIEVEMENTS =====
+        const achievements = {
+            'first_steps': { emoji: '👣', name: 'First Steps', condition: (s) => s >= 100 },
+            'five_k': { emoji: '🏃', name: '5K Steps', condition: (s) => s >= 5000 },
+            'ten_k': { emoji: '🎯', name: '10K Steps', condition: (s) => s >= 10000 },
+            'marathon': { emoji: '🚀', name: 'Marathon Run', condition: (s) => s >= 20000 }
+        };
+
+        const unlockedAchievements = new Set(
+            (localStorage.getItem('wolvepack_achievements') || '').split(',').filter(Boolean)
+        );
+
+        function checkAchievements() {
+            for (const [key, achievement] of Object.entries(achievements)) {
+                if (!unlockedAchievements.has(key) && achievement.condition(todaySteps)) {
+                    unlockAchievement(key, achievement);
+                }
+            }
+        }
+
+        function unlockAchievement(key, achievement) {
+            unlockedAchievements.add(key);
+            localStorage.setItem('wolvepack_achievements', Array.from(unlockedAchievements).join(','));
+
+            document.getElementById('achievementTitle').textContent = `🏆 ${achievement.name}!`;
+            document.getElementById('achievementBadge').textContent = achievement.emoji;
+            document.getElementById('achievementModal').classList.add('active');
+
+            // Send to backend
+            if (currentUser) {
+                fetch(`${API_BASE_URL}/achievements`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        title: achievement.name,
+                        badge_type: key
+                    })
+                }).catch(e => console.error('Failed to save achievement:', e));
+            }
+        }
+
+        // ===== START APP =====
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
