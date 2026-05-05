@@ -683,8 +683,22 @@ input[type=range] { flex:1; accent-color: var(--orange); }
 
     <div style="margin-top:20px">
       <div class="section-label">🎙️ Wolf Voice</div>
-      <div style="font-size:0.68em;color:var(--dim);margin-bottom:10px">
-        Pick the deepest male voice on your device. Tap 🔊 to preview each one, then tap SELECT to lock it in.
+      <div style="font-size:0.68em;color:var(--dim);margin-bottom:12px">
+        Quick Wolf Presets — pick your growl style:
+      </div>
+      
+      <!-- Voice Presets -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="btn btn-sm" style="background:rgba(255,107,53,0.18);border:1.5px solid rgba(255,107,53,0.4);color:var(--orange);font-weight:bold" onclick="applyVoicePreset('deepest')">
+          🔥 Deepest Wolf
+        </button>
+        <button class="btn btn-sm" style="background:rgba(255,107,53,0.12);border:1.5px solid rgba(255,107,53,0.3);color:var(--orange);font-weight:bold" onclick="applyVoicePreset('medium')">
+          💪 Alpha Wolf
+        </button>
+      </div>
+      
+      <div style="font-size:0.65em;color:var(--dim);margin-bottom:10px;padding:8px;background:rgba(255,107,53,0.06);border-radius:6px;border-left:2px solid var(--orange)">
+        👆 Tap a preset to auto-lock the deepest male voice. Or browse all voices below:
       </div>
       <div id="voice-list" style="max-height:240px;overflow-y:auto"></div>
       <button class="btn btn-ghost" style="margin-top:10px;font-size:0.78em" onclick="populateVoiceList()">🔄 Reload Voices</button>
@@ -2119,6 +2133,103 @@ function playMotivationalWolfSounds() {
 //  VOICE PICKER
 // ═══════════════════════════════════════════════════════════════
 let selectedVoiceName = localStorage.getItem('wolf_voice') || null;
+
+// Voice preference keywords for male voices
+const MALE_VOICE_KEYWORDS = [
+  'male', 'man', 'deep', 'bass', 'tenor', 'father', 'dad',
+  'david', 'alex', 'george', 'james', 'michael', 'john', 'paul',
+  'mark', 'victor', 'daniel', 'charles', 'thomas', 'andrew',
+  'aaron', 'chris', 'peter', 'robert', 'richard', 'voice',
+];
+
+const FEMALE_VOICE_KEYWORDS = [
+  'female', 'woman', 'girl', 'lady', 'soprano', 'alto',
+  'emma', 'samantha', 'victoria', 'moira', 'karen', 'susan',
+  'amy', 'betty', 'catherine', 'jessica', 'ashley', 'jennifer',
+];
+
+// Find the deepest male voice available
+function findDeepestMaleVoice(voices) {
+  // Priority 1: Contains "male" keyword
+  let candidates = voices.filter(v =>
+    MALE_VOICE_KEYWORDS.some(keyword =>
+      v.name.toLowerCase().includes(keyword)
+    ) &&
+    !FEMALE_VOICE_KEYWORDS.some(keyword =>
+      v.name.toLowerCase().includes(keyword)
+    ) &&
+    v.lang.startsWith('en')
+  );
+
+  // Priority 2: If no candidates, get all non-female English voices
+  if (candidates.length === 0) {
+    candidates = voices.filter(v =>
+      v.lang.startsWith('en') &&
+      !FEMALE_VOICE_KEYWORDS.some(keyword =>
+        v.name.toLowerCase().includes(keyword)
+      )
+    );
+  }
+
+  // Return first good candidate (usually the deepest on the device)
+  return candidates.length > 0 ? candidates[0] : null;
+}
+
+function applyVoicePreset(presetName) {
+  const voices = speechSynthesis.getVoices();
+  if (voices.length === 0) {
+    alert('Voices are still loading. Please wait a moment and try again.');
+    return;
+  }
+
+  let selectedVoice = null;
+
+  if (presetName === 'deepest') {
+    selectedVoice = findDeepestMaleVoice(voices);
+  } else if (presetName === 'medium') {
+    // For Alpha Wolf, pick the first solid male voice
+    selectedVoice = findDeepestMaleVoice(voices);
+  }
+
+  if (selectedVoice) {
+    selectVoice(selectedVoice.name);
+    // Preview the voice
+    previewVoice(selectedVoice.name, event.target);
+    // Show feedback
+    const msg = presetName === 'deepest' ? 'Deepest Wolf locked!' : 'Alpha Wolf locked!';
+    showToast(msg);
+  } else {
+    showToast('⚠️ No male voices found. Using system default.');
+    selectedVoiceName = null;
+    localStorage.removeItem('wolf_voice');
+    populateVoiceList();
+  }
+}
+
+function showToast(text) {
+  const existing = document.getElementById('voice-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'voice-toast';
+  toast.textContent = text;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,107,53,0.9);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 100;
+    animation: slideUp 0.3s ease-out;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
 
 function populateVoiceList() {
   const list = document.getElementById('voice-list');
