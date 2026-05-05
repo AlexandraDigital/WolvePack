@@ -721,6 +721,38 @@ const MOTIV = [
   "Every step is a victory!",
 ];
 
+// ── Dynamic taunt phrases when user is slowing down ──
+const TAUNT_PHRASES = [
+  "The pack is catching up to you!",
+  "You're falling behind, wolf!",
+  "Come on, pick up the pace!",
+  "The others smell weakness!",
+  "Your rivals are laughing at you!",
+  "Don't lose the hunt now!",
+  "The alpha waits for no one!",
+  "Your streak is on the line!",
+  "Show them what you're made of!",
+  "The pack needs you!",
+  "You're faster than this!",
+  "Slow pokes get left behind!",
+  "Fight through it!",
+  "Dig deeper!",
+];
+
+// ── Encouragement phrases when user is on pace ──
+const ENCOURAGE_PHRASES = [
+  "Now that's the pace!",
+  "You're crushing it!",
+  "Keep this momentum going!",
+  "The pack runs with you!",
+  "Perfect pace, warrior!",
+  "You ARE the hunt!",
+  "Nothing can stop you now!",
+  "Legend in the making!",
+  "Feel that power!",
+  "The wind is with you!",
+];
+
 const RANKS = [
   { name:'Omega',  label:'Pup',        minXP:0,    color:'#5a5040' },
   { name:'Beta',   label:'Runner',     minXP:200,  color:'#7a6850' },
@@ -769,7 +801,10 @@ let debugMag = 0;
 // ── Wolf motivation sounds during active runs ──
 let lastWolfSoundTime = 0;
 let WOLF_SOUND_INTERVAL = 8000; // Play wolf sounds every 8 seconds while running
+let lastPaceCheckTime = 0;
+let PACE_CHECK_INTERVAL = 15000; // Check pace every 15 seconds
 let isActivelyRunning = false;
+let sessionStartTime = 0; // Track when current session started
 
 function sensitivityToThreshold(s) {
   // s: 1–10 → threshold: 4.5 (low sens/high threshold) down to 1.0 (high sens/low threshold)
@@ -931,14 +966,18 @@ function countStep() {
   if (el) el.textContent = 'last step: just now';
   lastStepTime = Date.now();
 
-  // Mark user as actively running
+  // Mark user as actively running and track session start
+  if (!isActivelyRunning) {
+    sessionStartTime = Date.now();
+  }
   isActivelyRunning = true;
   updateLogoutButtonState();
   
   // Play motivational wolf sounds every 8 seconds during active run
   const now = Date.now();
   if (now - lastWolfSoundTime > WOLF_SOUND_INTERVAL) {
-    playMotivationalWolfSounds();
+    // Check pace and play appropriate audio
+    checkPaceAndTaunt();
     lastWolfSoundTime = now;
   }
 
@@ -1530,6 +1569,85 @@ function enterApp() {
   uiInterval = setInterval(updateUI, 2000);
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  PACE CHECKING & DYNAMIC TAUNTS
+// ═══════════════════════════════════════════════════════════════
+function checkPaceAndTaunt() {
+  const steps = gs.todaySteps || 0;
+  if (sessionStartTime === 0) return;
+  
+  const elapsedSeconds = (Date.now() - sessionStartTime) / 1000;
+  const currentPace = steps / (elapsedSeconds / 60); // steps per minute
+  
+  // Expected pace to hit goal by end of day (assume 16 waking hours)
+  const secondsInDay = 16 * 60 * 60; // 16 hours
+  const expectedPace = goal / (secondsInDay / 60); // target steps per minute
+  
+  // If pace is below 70% of expected, taunt! Otherwise encourage.
+  if (currentPace < expectedPace * 0.7) {
+    playTauntWolfHowl();
+    const taunt = TAUNT_PHRASES[Math.floor(Math.random() * TAUNT_PHRASES.length)];
+    showPhraseBubble(taunt, true);
+  } else {
+    playEncourageWolfHowl();
+    const encourage = ENCOURAGE_PHRASES[Math.floor(Math.random() * ENCOURAGE_PHRASES.length)];
+    showPhraseBubble(encourage, false);
+  }
+}
+
+function showPhraseBubble(phrase, isTaunt) {
+  // Find or create a phrase display element
+  let bubble = document.getElementById('phrase-bubble');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.id = 'phrase-bubble';
+    bubble.style.cssText = `
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${isTaunt ? 'rgba(200, 50, 50, 0.9)' : 'rgba(76, 175, 80, 0.9)'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      z-index: 1000;
+      max-width: 80%;
+      text-align: center;
+      animation: slideUp 0.3s ease-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    document.body.appendChild(bubble);
+  }
+  
+  bubble.textContent = phrase;
+  bubble.style.background = isTaunt ? 'rgba(200, 50, 50, 0.9)' : 'rgba(76, 175, 80, 0.9)';
+  bubble.style.display = 'block';
+  
+  // Add animation
+  if (!document.querySelector('style[data-phrase-animation]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-phrase-animation', 'true');
+    style.textContent = `
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes slideDown {
+        from { opacity: 1; transform: translateX(-50%) translateY(0); }
+        to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    bubble.style.animation = 'slideDown 0.3s ease-out forwards';
+    setTimeout(() => { bubble.style.display = 'none'; }, 300);
+  }, 3000);
+}
+
 function playWolfSounds() {
   // Generate wolf howl sounds using Web Audio API
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1578,21 +1696,59 @@ function playWolfSounds() {
   }, 1000);
 }
 
+function playTauntWolfHowl() {
+  // Aggressive taunting howl - deeper, more menacing
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Deep aggressive howl
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    // Frequency sweep from deeper to higher
+    osc.frequency.setValueAtTime(180, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.6);
+    osc.frequency.exponentialRampToValueAtTime(70, audioContext.currentTime + 1.2);
+    
+    // Quick attack, slow release for urgency
+    gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
+    
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 1.2);
+  } catch(e) { console.log('Audio unavailable'); }
+}
+
+function playEncourageWolfHowl() {
+  // Triumphant encouraging howl - higher, victorious
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Higher triumphant howl with variation
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    // Frequency sweep - rising triumphantly
+    osc.frequency.setValueAtTime(240, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(160, audioContext.currentTime + 0.5);
+    osc.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 1);
+    
+    // Nice sustain then fade
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 1);
+  } catch(e) { console.log('Audio unavailable'); }
+}
+
 function playMotivationalWolfSounds() {
-  // Shorter encouraging sounds during active runs
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  
-  // Quick encouraging growl
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
-  osc.frequency.setValueAtTime(160, audioContext.currentTime);
-  osc.frequency.setValueAtTime(150, audioContext.currentTime + 0.2);
-  gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  osc.start(audioContext.currentTime);
-  osc.stop(audioContext.currentTime + 0.3);
+  // Called by checkPaceAndTaunt now - this is a legacy wrapper
 }
 
 function updateLogoutButtonState() {
