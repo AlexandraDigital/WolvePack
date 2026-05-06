@@ -98,17 +98,19 @@ body {
   padding: 8px 14px; border-radius: 7px; font-size: 0.78em;
   font-weight: bold; letter-spacing: 1px; text-transform: uppercase;
   border: none; cursor: pointer; transition: all 0.15s;
+  min-height: 40px; display: flex; align-items: center; justify-content: center;
 }
 
 /* ── Main screen ── */
 /* Sticky header */
 .app-header {
   position: sticky; top: 0; z-index: 20;
-  background: rgba(10,10,22,0.95);
+  background: rgba(10,10,22,0.98);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,107,53,0.15);
   padding: 10px 16px;
   display: flex; align-items: center; justify-content: space-between;
+  min-height: 48px;
 }
 .app-header-left h2 { font-size: 1.1em; color: var(--orange); letter-spacing: 2px; }
 .app-header-left p  { font-size: 0.68em; color: var(--dim); letter-spacing: 1px; }
@@ -493,10 +495,93 @@ input[type=range] { flex:1; accent-color: var(--orange); }
 }
 .reset-btn:hover { background:rgba(244,67,54,0.1); border-color:rgba(244,67,54,0.6); color:#f44336; }
 
+/* ── Samsung Galaxy Watch & Smartwatch (360x360) ── */
+@media (max-width:390px) and (max-height:500px) {
+  body { padding: 0; }
+  
+  /* Compact header */
+  .app-header { padding: 6px 8px; }
+  .app-header-left h2 { font-size: 0.85em; letter-spacing: 1px; }
+  .app-header-left p { font-size: 0.6em; }
+  .btn-logout { font-size: 0.6em; padding: 5px 8px; }
+  
+  /* Setup screen */
+  .setup-box { padding: 16px 12px; max-width: 100%; }
+  .logo .wolf-big { font-size: 36px; }
+  .logo h1 { font-size: 1.3em; letter-spacing: 1px; }
+  .logo p { font-size: 0.65em; }
+  .text-input { padding: 9px 10px; font-size: 0.9em; }
+  .field-label { font-size: 0.6em; margin-top: 10px; margin-bottom: 4px; }
+  .sensor-box { padding: 10px; margin: 12px 0; }
+  .sensor-box p { font-size: 0.7em; margin-bottom: 8px; }
+  .btn { padding: 10px; font-size: 0.8em; margin-top: 8px; border-radius: 6px; }
+  .btn-sm { padding: 6px 10px; font-size: 0.65em; border-radius: 5px; }
+  
+  /* Main screen */
+  #main-screen.active { padding: 0 0 60px; }
+  .step-display { padding: 12px 8px 6px; }
+  .step-count { font-size: clamp(2.2em, 12vw, 3.5em); }
+  .step-unit { font-size: 0.8em; margin-top: 2px; }
+  
+  /* Wolf arena */
+  .wolf-arena { height: 80px; padding: 8px 10px; }
+  .arena-wolf-emoji { font-size: 1.8em !important; }
+  .arena-wolf:nth-child(2) .arena-wolf-emoji { font-size: 2.2em !important; }
+  .arena-speech { font-size: 0.55em; margin-top: 2px; }
+  
+  /* Stats row */
+  .stats { flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .stat { padding: 8px; font-size: 0.65em; flex: 1 1 calc(50% - 3px); }
+  .stat .number { font-size: 1.2em; }
+  
+  /* Action buttons */
+  .action-buttons { gap: 6px; margin: 12px 0; }
+  .btn-action { padding: 9px 8px; font-size: 0.7em; }
+  
+  /* Tabs */
+  .tab-bar { padding: 6px 4px; gap: 3px; }
+  .tab-bar button { padding: 7px 5px; font-size: 0.58em; border-radius: 5px; }
+  
+  /* Challenges */
+  .challenge { padding: 9px; margin: 7px 0; font-size: 0.7em; }
+  .challenge .name { font-size: 0.75em; }
+  .challenge .xp { font-size: 0.65em; }
+  
+  /* Pack members */
+  .pack-member { padding: 9px; margin: 7px 0; font-size: 0.7em; }
+  .member-avatar { width: 30px; height: 30px; font-size: 0.85em; }
+  
+  /* History */
+  .history-entry { padding: 7px; margin: 6px 0; font-size: 0.65em; }
+  .history-time { font-size: 0.55em; }
+  
+  /* Voice section */
+  .section-label { font-size: 0.68em; margin: 10px 0 6px; }
+  .voice-select { font-size: 0.78em; padding: 7px; }
+  .voice-button { padding: 6px 5px; font-size: 0.65em; margin: 3px 2px; }
+  
+  /* Preset buttons */
+  .preset-buttons { gap: 5px; margin: 8px 0; }
+  .preset-btn { padding: 7px 5px; font-size: 0.62em; flex: 1; }
+  
+  /* Settings */
+  .settings-menu { max-width: 100%; width: 100%; }
+  .setting-item { padding: 9px; margin: 6px 0; font-size: 0.72em; }
+  
+  /* Toast */
+  .preset-toast { font-size: 0.75em; padding: 6px 10px; }
+  
+  /* Rank badge */
+  .rank-badge { font-size: 0.6em; padding: 2px 7px; }
+  .xp-label { font-size: 0.6em; }
+}
+
+/* Standard 360px width only */
 @media (max-width:360px) {
-  .step-count { font-size: 3em; }
-  .wolf-arena { height: 90px; }
-  .arena-wolf-emoji { font-size: 2em !important; }
+  .step-count { font-size: 2.8em; }
+  .wolf-arena { height: 75px; }
+  .arena-wolf-emoji { font-size: 1.6em !important; }
+  .arena-wolf:nth-child(2) .arena-wolf-emoji { font-size: 2em !important; }
 }
 </style>
 </head>
