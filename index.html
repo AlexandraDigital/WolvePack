@@ -2431,7 +2431,41 @@ function resetAll() {
 // ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// SCREEN WAKE LOCK - Keep display on during workouts
+// ═══════════════════════════════════════════════════════════════
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    console.log('🐺 Wake Lock active - screen will stay on');
+    
+    // Re-request if user re-opens app
+    document.addEventListener('visibilitychange', async () => {
+      if (document.hidden) {
+        if (wakeLock) {
+          await wakeLock.release();
+          wakeLock = null;
+        }
+      } else {
+        if (!wakeLock) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('🐺 Wake Lock re-activated');
+        }
+      }
+    });
+  } catch (err) {
+    console.log('Wake Lock not supported on this device:', err);
+  }
+}
+
 (function init() {
+  // Request wake lock immediately on app start
+  if ('wakeLock' in navigator) {
+    requestWakeLock();
+  }
+  
   gs = loadGS();
   checkIncomingLink(); // import pack data from URL if present
   if (gs.username) {
