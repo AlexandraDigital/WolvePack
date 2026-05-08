@@ -1,0 +1,7 @@
+name = "wolvepack"
+compatibility_date = "2024-02-15"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "WOLVEPACK_KV"
+id = "replace-with-cloudflare-kv-namespace-id"

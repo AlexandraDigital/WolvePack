@@ -81,6 +81,49 @@ body {
 .sensor-status { font-size: 0.75em; margin-top: 8px; color: var(--dim); min-height: 18px; }
 .sensor-status.ok  { color: var(--green); }
 .sensor-status.err { color: #f44336; }
+.mobile-connect-card {
+  margin: 16px 0;
+  background: rgba(74,144,217,0.08);
+  border: 1.5px solid rgba(74,144,217,0.38);
+  border-radius: 10px;
+  padding: 14px;
+}
+.mobile-connect-card h3 {
+  color: var(--blue);
+  font-size: 0.82em;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.mobile-connect-card p {
+  color: rgba(255,255,255,0.68);
+  font-size: 0.78em;
+  line-height: 1.45;
+}
+.mobile-link-box {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-size: 0.74em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.mobile-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mobile-actions.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.mobile-actions .btn {
+  margin-top: 0;
+  padding: 10px;
+  font-size: 0.72em;
+}
 
 .btn {
   width:100%; padding: 13px;
@@ -514,6 +557,8 @@ input[type=range] { flex:1; accent-color: var(--orange); }
   .field-label { font-size: 0.6em; margin-top: 10px; margin-bottom: 4px; }
   .sensor-box { padding: 10px; margin: 12px 0; }
   .sensor-box p { font-size: 0.7em; margin-bottom: 8px; }
+  .mobile-actions,
+  .mobile-actions.three { grid-template-columns: 1fr; }
   .btn { padding: 10px; font-size: 0.8em; margin-top: 8px; border-radius: 6px; }
   .btn-sm { padding: 6px 10px; font-size: 0.65em; border-radius: 5px; }
   
@@ -618,6 +663,19 @@ input[type=range] { flex:1; accent-color: var(--orange); }
       <p>🐺 The pack needs permission to sense your movement via your device's motion sensor. No account needed — everything stays on this device.</p>
       <button class="btn btn-ghost" onclick="requestMotionPermission()" id="permission-btn">🔓 ENABLE MOTION SENSOR</button>
       <div class="sensor-status" id="sensor-status">Tap above to enable step tracking</div>
+    </div>
+
+    <div class="mobile-connect-card">
+      <h3>📱 Cloudflare Device Sync</h3>
+      <p>Open this on your phone, then send the watch link to your Galaxy Watch. Both devices use the same Cloudflare pack ID.</p>
+      <div class="mobile-link-box" id="mobile-url-box">Loading mobile link...</div>
+      <div class="mobile-link-box" id="watch-url-box">Loading watch link...</div>
+      <div class="mobile-actions three">
+        <button class="btn btn-ghost" onclick="copyMobileLink()">🔗 Phone</button>
+        <button class="btn btn-ghost" onclick="shareWatchLink()">⌚ Watch</button>
+        <button class="btn btn-ghost" onclick="cloudSyncNow()">☁️ Sync</button>
+      </div>
+      <div class="sensor-status" id="mobile-link-status"></div>
     </div>
 
     <button class="btn btn-primary" onclick="startPack()">🐺 ENTER THE PACK</button>
@@ -953,6 +1011,10 @@ let goal = parseInt(localStorage.getItem('wolf_goal') || '10000');
 let motionActive = false;
 let lastStepTime = 0;
 let uiInterval = null;
+let cloudSyncTimer = null;
+let cloudPullTimer = null;
+let cloudSyncInFlight = false;
+let applyingCloudState = false;
 
 // ── Peak detection state ──
 let lastMag = 0;
@@ -999,6 +1061,7 @@ function loadGS() {
 }
 function saveGS() {
   localStorage.setItem('wolf_gs', JSON.stringify(gs));
+  if (!applyingCloudState) scheduleCloudPush();
 }
 
 function todayKey() { return new Date().toISOString().slice(0,10); }
@@ -1444,6 +1507,7 @@ function getPackMembers() {
 }
 function savePackMembers(members) {
   localStorage.setItem('wolf_pack', JSON.stringify(members));
+  if (!applyingCloudState) scheduleCloudPush();
 }
 
 // Build the share URL encoding your current state
@@ -1779,6 +1843,260 @@ function updateGoal(val) {
   updateUI();
 }
 
+function getMobileAppUrl() {
+  const hostedUrl = 'https://wolvepack.pages.dev/';
+  const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+  return isLocal ? hostedUrl : location.href.split('?')[0].split('#')[0];
+}
+
+function applyIncomingCloudPackParam() {
+  const params = new URLSearchParams(location.search);
+  const packId = params.get('pack');
+  if (packId && /^[a-zA-Z0-9_-]{6,80}$/.test(packId)) {
+    localStorage.setItem('wolf_cloud_pack_id', packId);
+  }
+  if (params.get('watch') === '1') {
+    localStorage.setItem('wolf_watch_mode', '1');
+  }
+}
+
+function getCloudPackId() {
+  let packId = localStorage.getItem('wolf_cloud_pack_id');
+  if (!packId) {
+    const bytes = new Uint8Array(12);
+    if (crypto && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+      packId = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+      packId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+    localStorage.setItem('wolf_cloud_pack_id', packId);
+  }
+  return packId;
+}
+
+function getCloudApiBase() {
+  return (localStorage.getItem('wolf_cloud_api_base') || '').replace(/\/$/, '');
+}
+
+function getCloudEndpoint() {
+  return `${getCloudApiBase()}/api/pack/${encodeURIComponent(getCloudPackId())}`;
+}
+
+function getWatchAppUrl() {
+  const url = new URL(getMobileAppUrl());
+  url.searchParams.set('pack', getCloudPackId());
+  url.searchParams.set('watch', '1');
+  return url.toString();
+}
+
+function renderMobileLink() {
+  const box = document.getElementById('mobile-url-box');
+  const watchBox = document.getElementById('watch-url-box');
+  if (box) box.textContent = `Phone: ${getMobileAppUrl()}`;
+  if (watchBox) watchBox.textContent = `Watch: ${getWatchAppUrl()}`;
+}
+
+async function copyMobileLink() {
+  const url = getMobileAppUrl();
+  const status = document.getElementById('mobile-link-status');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    if (status) {
+      status.textContent = '✅ Mobile link copied.';
+      status.className = 'sensor-status ok';
+    }
+  } catch (e) {
+    if (status) {
+      status.textContent = 'Copy failed. Long-press the link above.';
+      status.className = 'sensor-status err';
+    }
+  }
+}
+
+async function shareMobileLink() {
+  const url = getMobileAppUrl();
+  const status = document.getElementById('mobile-link-status');
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'WolvePack',
+        text: 'Open WolvePack on your phone.',
+        url,
+      });
+      if (status) {
+        status.textContent = '✅ Share sheet opened.';
+        status.className = 'sensor-status ok';
+      }
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  copyMobileLink();
+}
+
+async function shareWatchLink() {
+  const url = getWatchAppUrl();
+  const status = document.getElementById('mobile-link-status');
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'WolvePack Watch Link',
+        text: 'Open this WolvePack link on the Galaxy Watch.',
+        url,
+      });
+      if (status) {
+        status.textContent = '✅ Watch link ready.';
+        status.className = 'sensor-status ok';
+      }
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    if (status) {
+      status.textContent = '✅ Watch link copied.';
+      status.className = 'sensor-status ok';
+    }
+  } catch (e) {
+    if (status) {
+      status.textContent = 'Long-press the watch link above.';
+      status.className = 'sensor-status err';
+    }
+  }
+}
+
+function setCloudStatus(message, ok = true) {
+  const status = document.getElementById('mobile-link-status');
+  if (!status) return;
+  status.textContent = message;
+  status.className = ok ? 'sensor-status ok' : 'sensor-status err';
+}
+
+function getCloudPayload() {
+  return {
+    state: gs,
+    packMembers: getPackMembers(),
+    goal,
+    sensitivity,
+    updatedAt: Date.now(),
+    device: localStorage.getItem('wolf_watch_mode') === '1' ? 'watch' : 'mobile',
+  };
+}
+
+function mergePackMembers(localMembers, remoteMembers) {
+  const byName = new Map();
+  [...localMembers, ...(remoteMembers || [])].forEach(member => {
+    if (!member || !member.name) return;
+    const key = member.name.toLowerCase();
+    const existing = byName.get(key);
+    if (!existing || (member.addedAt || 0) >= (existing.addedAt || 0)) {
+      byName.set(key, member);
+    }
+  });
+  return Array.from(byName.values());
+}
+
+function applyCloudPayload(payload) {
+  if (!payload || !payload.state) return;
+  applyingCloudState = true;
+  try {
+    const remote = payload.state;
+    const local = gs || {};
+    gs = {
+      ...remote,
+      ...local,
+      username: local.username || remote.username,
+      xp: Math.max(local.xp || 0, remote.xp || 0),
+      streak: Math.max(local.streak || 0, remote.streak || 0),
+      todaySteps: Math.max(local.todaySteps || 0, remote.todaySteps || 0),
+      history: { ...(remote.history || {}), ...(local.history || {}) },
+      awardedToday: { ...(remote.awardedToday || {}), ...(local.awardedToday || {}) },
+    };
+    localStorage.setItem('wolf_gs', JSON.stringify(gs));
+    savePackMembers(mergePackMembers(getPackMembers(), payload.packMembers));
+    if (Number.isFinite(payload.goal)) {
+      goal = payload.goal;
+      localStorage.setItem('wolf_goal', String(goal));
+    }
+    if (Number.isFinite(payload.sensitivity)) {
+      sensitivity = payload.sensitivity;
+      localStorage.setItem('wolf_sensitivity', String(sensitivity));
+    }
+  } finally {
+    applyingCloudState = false;
+  }
+  updateUI();
+  renderPackTab();
+}
+
+function scheduleCloudPush() {
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => cloudPushNow(), 900);
+}
+
+async function cloudPushNow() {
+  if (cloudSyncInFlight) return;
+  cloudSyncInFlight = true;
+  try {
+    const res = await fetch(getCloudEndpoint(), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getCloudPayload()),
+    });
+    if (!res.ok) throw new Error(`Cloudflare sync failed (${res.status})`);
+    localStorage.setItem('wolf_cloud_last_push', String(Date.now()));
+    setCloudStatus('✅ Cloudflare sync active.');
+  } catch (e) {
+    setCloudStatus('Cloudflare sync unavailable until deployed.', false);
+  } finally {
+    cloudSyncInFlight = false;
+  }
+}
+
+async function cloudPullNow() {
+  try {
+    const res = await fetch(getCloudEndpoint());
+    if (res.status === 404) {
+      await cloudPushNow();
+      return;
+    }
+    if (!res.ok) throw new Error(`Cloudflare pull failed (${res.status})`);
+    const payload = await res.json();
+    applyCloudPayload(payload);
+    setCloudStatus('✅ Synced from Cloudflare.');
+  } catch (e) {
+    setCloudStatus('Cloudflare sync unavailable until deployed.', false);
+  }
+}
+
+async function cloudSyncNow() {
+  await cloudPullNow();
+  await cloudPushNow();
+  renderMobileLink();
+}
+
+function startCloudSyncLoop() {
+  renderMobileLink();
+  clearInterval(cloudPullTimer);
+  cloudPullTimer = setInterval(cloudPullNow, 30000);
+  cloudPullNow();
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  SETUP
 // ═══════════════════════════════════════════════════════════════
@@ -1812,6 +2130,8 @@ function enterApp() {
   if (localStorage.getItem('wolf_motion_perm') === '1') {
     startMotionTracking();
   }
+
+  startCloudSyncLoop();
 
   // UI refresh loop
   clearInterval(uiInterval);
@@ -2466,7 +2786,9 @@ async function requestWakeLock() {
     requestWakeLock();
   }
   
+  applyIncomingCloudPackParam();
   gs = loadGS();
+  renderMobileLink();
   checkIncomingLink(); // import pack data from URL if present
   if (gs.username) {
     document.getElementById('username-input').value = gs.username;
