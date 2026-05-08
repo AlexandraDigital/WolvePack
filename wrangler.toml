@@ -4,4 +4,5 @@ pages_build_output_dir = "."
 
 [[kv_namespaces]]
 binding = "WOLVEPACK_KV"
-id = "replace-with-cloudflare-kv-namespace-id"
+id = "9d37b921c11745f4825a50a7c4b85b4f"
+           
